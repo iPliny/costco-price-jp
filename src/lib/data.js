@@ -32,6 +32,26 @@ function parseCsv(text) {
 const num = (v) => (v === '' ? null : Number(v));
 
 export const COMMUNITY = '社群回報';
+export const ONLINE_STORE = '線上商店';
+export const CRAWLED = '官網自動取得';
+
+// 店別固定順序，線上商店放最後（大家都查得到）。
+const STORE_ORDER = ['熊本御船倉庫店', '座間倉庫店', '新三郷倉庫店', '川崎倉庫店', '浜松倉庫店', ONLINE_STORE];
+export function storeOrder(a, b) {
+  const i = (st) => (STORE_ORDER.includes(st) ? STORE_ORDER.indexOf(st) : STORE_ORDER.length - 1);
+  return i(a) - i(b) || a.localeCompare(b, 'ja');
+}
+
+// 官網價格只是另一家店的價格。比較時用期間重疊的官網紀錄（同計價單位、取最新的一筆），
+// 回傳「這家店比官網貴多少」（負數＝比較便宜）；沒有可比的官網紀錄時回傳 null。
+export function onlineDiff(o, observations) {
+  if (o.store === ONLINE_STORE || o.price == null) return null;
+  const overlaps = (a, b) => a.period_from && b.period_from && a.period_from <= (b.period_to || b.period_from) && b.period_from <= (a.period_to || a.period_from);
+  const online = observations
+    .filter((x) => x.store === ONLINE_STORE && x.price != null && x.price_unit === o.price_unit && overlaps(o, x))
+    .sort((a, b) => (b.period_to || '').localeCompare(a.period_to || ''))[0];
+  return online ? o.price - online.price : null;
+}
 
 function readObservations() {
   const file = path.resolve('data/observations.csv');

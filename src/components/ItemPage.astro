@@ -1,12 +1,12 @@
 ---
 import Base from '../layouts/Base.astro';
-import { yen, COMMUNITY } from '../lib/data.js';
+import { yen, COMMUNITY, CRAWLED, storeOrder, onlineDiff } from '../lib/data.js';
 import { t, storeName, sourceName, statusName, noteText, localePath } from '../lib/i18n.js';
 
 const { p, lang } = Astro.props;
 const s = t(lang);
 const base = import.meta.env.BASE_URL;
-const obs = [...p.observations].sort((a, b) => a.store.localeCompare(b.store, 'ja') || (b.period_to || '').localeCompare(a.period_to || ''));
+const obs = [...p.observations].sort((a, b) => storeOrder(a.store, b.store) || (b.period_to || '').localeCompare(a.period_to || ''));
 ---
 <Base lang={lang} path={`item/${p.id}/`} title={s.itemTitle(p.name)} description={s.itemDescription(p.name, p.item_no)}>
   <p><a href={localePath(lang)}>{s.back}</a></p>
@@ -27,6 +27,9 @@ const obs = [...p.observations].sort((a, b) => a.store.localeCompare(b.store, 'j
           {yen(o.price)}{o.price_unit === '100g' && <span class="unit">{s.per100g}</span>}
           {o.list_price && <span class="was muted">{s.wasPrice} {yen(o.list_price)}</span>}
           {o.discount && <span class="off">{s.off} {yen(o.discount)}</span>}
+          {onlineDiff(o, p.observations) != null && (
+            <span class={onlineDiff(o, p.observations) < 0 ? 'vs cheaper' : onlineDiff(o, p.observations) > 0 ? 'vs pricier' : 'vs'}>{s.vsOnline(onlineDiff(o, p.observations))}</span>
+          )}
         </div>
         <dl>
           {o.spec && <><dt>{s.spec}</dt><dd>{o.spec}</dd></>}
@@ -35,6 +38,9 @@ const obs = [...p.observations].sort((a, b) => a.store.localeCompare(b.store, 'j
           {o.promo_end && <><dt>{s.promoEnd}</dt><dd>{o.promo_end}</dd></>}
           {noteText(lang, o) && <><dt>{s.note}</dt><dd>{noteText(lang, o)}</dd></>}
         </dl>
+        {o.source_type === CRAWLED && o.item_no && (
+          <p class="online-link"><a href={`https://www.costco.co.jp/p/${o.item_no}`} rel="noopener" target="_blank">{s.openOnline} ↗</a></p>
+        )}
         {o.evidence_image && (
           <details class="evidence">
             <summary>{s.showScreenshot}</summary>
@@ -57,6 +63,10 @@ const obs = [...p.observations].sort((a, b) => a.store.localeCompare(b.store, 'j
     .unit { font-size: .9rem; font-weight: 400; }
     .was { font-size: .85rem; font-weight: 400; text-decoration: line-through; }
     .off { font-size: .8rem; font-weight: 600; color: var(--ok); background: var(--ok-bg); padding: 1px 8px; border-radius: 999px; }
+    .vs { font-size: .8rem; font-weight: 600; padding: 1px 8px; border-radius: 999px; background: var(--accent-bg); color: var(--accent); }
+    .vs.cheaper { background: var(--ok-bg); color: var(--ok); }
+    .vs.pricier { background: var(--warn-bg); color: var(--warn); }
+    .online-link { margin: 6px 0 0; font-size: .88rem; }
     dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; margin: 0; font-size: .88rem; }
     dt { color: var(--muted); }
     dd { margin: 0; }
