@@ -92,9 +92,12 @@ def apply(fields, rows, results, today):
         if res["status"] != "ok":
             continue
         item = res["item_no"]
+        # The values this result would be stored as (list price only kept when discounted).
+        facts = {"price": res["price"], "list_price": res["list_price"] if res["discount"] else "",
+                 "discount": res["discount"], "promo_end": res["promo_end"]}
         mine = [r for r in rows if r["item_no"] == item and r["source_type"] == SOURCE]
         last = max(mine, key=lambda r: r["period_to"], default=None)
-        same = last and all(str(last[k]) == str(res[k]) for k in ("price", "list_price", "discount", "promo_end"))
+        same = last and all(str(last[k]) == str(v) for k, v in facts.items())
         if same:
             if last["period_to"] < today:
                 last["period_to"] = today
@@ -107,8 +110,7 @@ def apply(fields, rows, results, today):
             **{k: "" for k in fields},
             "record_id": f"ON-{item}-{today.replace('-', '')}",
             "store": ONLINE_STORE, "source_type": SOURCE, "item_no": item, "name": res["name"],
-            "price": res["price"], "price_unit": "件", "list_price": res["list_price"] if res["discount"] else "",
-            "discount": res["discount"], "promo_end": res["promo_end"],
+            **facts, "price_unit": "件",
             "period_from": today, "period_to": today,
             "note": note, "note_ja": note_ja, "review_status": "已查核",
         })
