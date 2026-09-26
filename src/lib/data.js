@@ -88,6 +88,9 @@ export function loadProducts() {
   }
   const products = [...byId.values()];
   for (const p of products) {
+    // 第一筆紀錄沒有商品名時，改用同商品其他紀錄的名稱（例如官網取得的正式名稱）；都沒有就留空，頁面改顯示商品番号。
+    if (!p.name) p.name = p.observations.find((o) => o.name)?.name ?? '';
+    if (!p.spec) p.spec = p.observations.find((o) => o.spec)?.spec ?? '';
     p.stores = [...new Set(p.observations.map((o) => o.store))];
     // 社群回報只在商品沒有其他來源時才用來算價格區間。
     const checked = p.observations.filter((o) => o.source_type !== COMMUNITY);
@@ -99,6 +102,8 @@ export function loadProducts() {
     p.maxPrice = unitPrices.length ? Math.max(...unitPrices) : null;
     p.min100g = per100.length ? Math.min(...per100) : null;
     p.max100g = per100.length ? Math.max(...per100) : null;
+    // 最新價格（給搜尋結果的描述用）：非社群回報中確認日最新的一筆，同一天依店別順序。
+    p.latest = [...basis].filter((o) => o.price != null).sort((a, b) => (b.period_to || '').localeCompare(a.period_to || '') || storeOrder(a.store, b.store))[0] ?? null;
   }
   return products.sort((a, b) => a.name.localeCompare(b.name, 'ja'));
 }
