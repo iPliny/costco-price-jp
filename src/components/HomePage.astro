@@ -1,12 +1,24 @@
 ---
 import Base from '../layouts/Base.astro';
-import { loadProducts, priceRange } from '../lib/data.js';
+import { loadProducts, loadHeat, priceRange } from '../lib/data.js';
 import { t, storeName, localePath } from '../lib/i18n.js';
 
 const { lang } = Astro.props;
 const s = t(lang);
-const products = loadProducts();
-const stores = [...new Set(products.flatMap((p) => p.stores))].sort((a, b) => a.localeCompare(b, 'ja'));
+// 排序：最新一週熱度 TOP5 相關商品在前（依名次），其餘依紀錄筆數多到少，同數再依名稱。
+const latest = loadHeat().at(-1);
+const heatRank = (p) => {
+  const text = `${p.name} ${p.item_no} ${p.spec}`.toLowerCase();
+  const hit = latest?.items.find((h) => text.includes(h.query.toLowerCase()));
+  return hit ? hit.rank : Infinity;
+};
+const products = loadProducts().sort(
+  (a, b) => heatRank(a) - heatRank(b) || b.observations.length - a.observations.length || a.name.localeCompare(b.name, 'ja')
+);
+// 店別照固定順序，線上商店放最後（大家都查得到）。
+const STORE_ORDER = ['熊本御船倉庫店', '座間倉庫店', '新三郷倉庫店', '川崎倉庫店', '浜松倉庫店', '線上商店'];
+const storeOrder = (st) => (STORE_ORDER.includes(st) ? STORE_ORDER.indexOf(st) : STORE_ORDER.length - 1);
+const stores = [...new Set(products.flatMap((p) => p.stores))].sort((a, b) => storeOrder(a) - storeOrder(b) || a.localeCompare(b, 'ja'));
 ---
 <Base lang={lang} path="" title={s.homeTitle}>
   <h1>{s.heading}</h1>
