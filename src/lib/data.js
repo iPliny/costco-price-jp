@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 // 公開站輸出「已查核」與「待確認」（會標示）；PREVIEW=1 時連同待查核一起輸出，供內部預覽。
+// 沒有 Costco 商品號的紀錄無法串連歷史，公開站不顯示，只留在資料檔與預覽。
 export const PREVIEW = process.env.PREVIEW === '1';
 const PUBLISHABLE = new Set(['已查核', '待確認']);
 
@@ -41,7 +42,7 @@ export function loadObservations() {
       list_price: num(r.list_price),
       discount: num(r.discount),
     }))
-    .filter((r) => PREVIEW || PUBLISHABLE.has(r.review_status));
+    .filter((r) => PREVIEW || (PUBLISHABLE.has(r.review_status) && r.item_no));
 }
 
 // 商品以 Costco 商品號歸戶；沒有商品號的紀錄以名稱暫時歸戶。

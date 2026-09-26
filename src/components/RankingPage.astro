@@ -1,12 +1,15 @@
 ---
 import Base from '../layouts/Base.astro';
-import { loadHeat } from '../lib/data.js';
+import { loadHeat, loadProducts } from '../lib/data.js';
 import { t, storeName, localePath } from '../lib/i18n.js';
 
 const { lang } = Astro.props;
 const s = t(lang);
 // 最新一週在最上面，舊的週次往下保留。
 const weeks = loadHeat().reverse();
+// 只有站上找得到對應商品時才顯示價格連結。
+const searchable = loadProducts().map((p) => `${p.name} ${p.item_no} ${p.spec}`.toLowerCase());
+const hasPrices = (q) => searchable.some((t) => t.includes(q.toLowerCase()));
 const week = weeks[0];
 const name = (h) => (lang === 'ja' ? h.name_ja : h.name_zh);
 const summary = (h) => (lang === 'ja' ? h.summary_ja : h.summary_zh);
@@ -35,7 +38,7 @@ const summary = (h) => (lang === 'ja' ? h.summary_ja : h.summary_zh);
                 <h3>{s.heatSummary}</h3>
                 <ul>{summary(h).map((line) => <li>{line}</li>)}</ul>
                 <p class="muted small">{s.heatStores}：{h.stores.map((st) => storeName(lang, st)).join(s.storeJoin)}</p>
-                <p><a href={`${localePath(lang)}?q=${encodeURIComponent(h.query)}`}>{s.heatSeePrices} →</a></p>
+                {hasPrices(h.query) && <p><a href={`${localePath(lang)}?q=${encodeURIComponent(h.query)}`}>{s.heatSeePrices} →</a></p>}
               </div>
             </details>
           </li>
