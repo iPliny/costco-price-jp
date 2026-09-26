@@ -18,27 +18,39 @@ concurrency:
 jobs:
   crawl:
     runs-on: ubuntu-latest
+    # About 6.5 s per item: ~55 min for 500 items. Default job limit is 6 h.
+    timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
-      - name: Fetch prices and merge
-        run: python3 tools/crawl_online.py --apply
+      - name: Fetch prices
+        run: python3 tools/crawl_online.py
       - uses: actions/upload-artifact@v4
         with:
           name: online-fetch
           path: data/online_fetch.csv
-      - name: Commit and redeploy if anything changed
+      - name: Merge into the latest main, commit and redeploy
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if git diff --quiet data/observations.csv; then
-            echo "No price changes."
-            exit 0
-          fi
           git config user.name "online-price-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/observations.csv
-          git commit -m "Online prices $(TZ=Asia/Tokyo date +%F)"
-          git pull --rebase origin main
-          git push origin HEAD:main
-          # Pushes made with the workflow token don't trigger other workflows, so start the deploy explicitly.
-          gh workflow run deploy.yml --ref main
+          # The fetch can take an hour; merge onto main as it is now, and retry if someone pushes in between.
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git reset --hard origin/main
+            python3 tools/crawl_online.py --merge-only
+            if git diff --quiet data/observations.csv; then
+              echo "No price changes."
+              exit 0
+            fi
+            git add data/observations.csv
+            git commit -m "Online prices $(TZ=Asia/Tokyo date +%F)"
+            if git push origin HEAD:main; then
+              # Pushes made with the workflow token don't trigger other workflows, so start the deploy explicitly.
+              gh workflow run deploy.yml --ref main
+              exit 0
+            fi
+            sleep 20
+          done
+          echo "Could not push after 3 attempts." >&2
+          exit 1
