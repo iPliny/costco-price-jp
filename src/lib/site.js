@@ -2,4 +2,4 @@
 // GA_ID：Google Analytics 4 的評估 ID（G- 開頭）。
 // GSC_VERIFICATION：Google Search Console「HTML 標記」驗證碼（meta 的 content 值）。
 export const GA_ID = 'G-2Z8GPT1NM0';
-export const GSC_VERIFICATION = '';
+export const GSC_VERIFICATION = 'mTmTd-dIRDYxac2QYqndSXBYN4NNq2UnwuZa-e2qcq4';
