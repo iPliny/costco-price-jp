@@ -1,15 +1,25 @@
 ---
 import Base from '../layouts/Base.astro';
-import { loadHeat, loadProducts, loadReports, yen } from '../lib/data.js';
-import { t, storeName, noteText, localePath } from '../lib/i18n.js';
+import { loadHeat, loadProducts, loadReports, yen, COMMUNITY } from '../lib/data.js';
+import { t, storeName, sourceName, noteText } from '../lib/i18n.js';
 
 const { lang } = Astro.props;
 const s = t(lang);
 // 最新一週在最上面，舊的週次往下保留。
 const weeks = loadHeat().reverse();
-// 只有站上找得到對應商品時才顯示價格連結。
-const searchable = loadProducts().map((p) => `${p.name} ${p.item_no} ${p.spec}`.toLowerCase());
-const hasPrices = (q) => searchable.some((t) => t.includes(q.toLowerCase()));
+// 每個排名商品直接列出價格：站上對應商品的價牌／官網紀錄，加上當週群組回報（依紀錄編號去重）。
+const products = loadProducts();
+function prices(h) {
+  const q = h.query.toLowerCase();
+  const matched = products
+    .filter((p) => `${p.name} ${p.item_no} ${p.spec}`.toLowerCase().includes(q))
+    .flatMap((p) => p.observations.filter((o) => o.source_type !== COMMUNITY));
+  const rows = [...matched, ...loadReports(h.reports ?? [])];
+  const seen = new Set();
+  return rows
+    .filter((o) => !seen.has(o.record_id) && seen.add(o.record_id))
+    .sort((a, b) => a.store.localeCompare(b.store, 'ja') || a.name.localeCompare(b.name, 'ja'));
+}
 const week = weeks[0];
 const name = (h) => (lang === 'ja' ? h.name_ja : h.name_zh);
 const summary = (h) => (lang === 'ja' ? h.summary_ja : h.summary_zh);
@@ -37,24 +47,26 @@ const summary = (h) => (lang === 'ja' ? h.summary_ja : h.summary_zh);
               <div class="body">
                 <h3>{s.heatSummary}</h3>
                 <ul>{summary(h).map((line) => <li>{line}</li>)}</ul>
-                {loadReports(h.reports ?? []).length > 0 && (
+                <h3>{s.heatPrices}</h3>
+                {prices(h).length > 0 ? (
                   <>
-                    <h3>{s.heatReports}</h3>
-                    <p class="muted small">{s.heatReportsNote}</p>
+                    <p class="muted small">{s.heatPricesNote}</p>
                     <ul class="reports">
-                      {loadReports(h.reports).map((o) => (
+                      {prices(h).map((o) => (
                         <li>
                           <span class="r-store">{storeName(lang, o.store)}</span>
                           <span class="r-price">{yen(o.price)}{o.price_unit === '100g' && s.per100g}</span>
-                          <span class="muted small">{o.name}{o.spec && !o.name.includes(o.spec) && `・${o.spec}`}・{s.reportedOn(o.period_from, o.period_to)}</span>
+                          <span class="muted small">{o.name}{o.spec && !o.name.includes(o.spec) && `・${o.spec}`}</span>
+                          <span class="muted small">{sourceName(lang, o.source_type)}・{o.source_type === COMMUNITY ? s.reportedOn(o.period_from, o.period_to) : s.period(o.period_from, o.period_to)}</span>
                           {noteText(lang, o) && <span class="muted small">{noteText(lang, o)}</span>}
                         </li>
                       ))}
                     </ul>
                   </>
+                ) : (
+                  <p class="muted small">{s.heatNoPrices}</p>
                 )}
                 <p class="muted small">{s.heatStores}：{h.stores.map((st) => storeName(lang, st)).join(s.storeJoin)}</p>
-                {hasPrices(h.query) && <p><a href={`${localePath(lang)}?q=${encodeURIComponent(h.query)}`}>{s.heatSeePrices} →</a></p>}
               </div>
             </details>
           </li>
