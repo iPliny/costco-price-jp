@@ -1,0 +1,44 @@
+name: Crawl online prices
+
+# Every morning 06:00 JST: fetch costco.co.jp online prices for items we track
+# in a warehouse, merge them into data/observations.csv, then redeploy the site.
+on:
+  schedule:
+    - cron: "0 21 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: crawl-online
+  cancel-in-progress: false
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch prices and merge
+        run: python3 tools/crawl_online.py --apply
+      - uses: actions/upload-artifact@v4
+        with:
+          name: online-fetch
+          path: data/online_fetch.csv
+      - name: Commit and redeploy if anything changed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet data/observations.csv; then
+            echo "No price changes."
+            exit 0
+          fi
+          git config user.name "online-price-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/observations.csv
+          git commit -m "Online prices $(TZ=Asia/Tokyo date +%F)"
+          git pull --rebase origin main
+          git push origin HEAD:main
+          # Pushes made with the workflow token don't trigger other workflows, so start the deploy explicitly.
+          gh workflow run deploy.yml --ref main
