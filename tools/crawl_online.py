@@ -1,105 +1,160 @@
-"""Fetch costco.co.jp online prices for the item numbers we track.
+"""Fetch costco.co.jp online prices for products we already track in a warehouse.
 
-Read-only and gentle: one request every DELAY seconds, only for item numbers
-already in data/observations.csv. Keeps prices (facts) only; never copies
-Costco's photos, descriptions or reviews.
+Only item numbers that have at least one warehouse (non-online) record in
+data/observations.csv are fetched: an online price is only useful here as a
+comparison with a store price (POYU, 2026-09-26).
 
-Usage: python3 tools/crawl_online.py [--debug ITEM ...]
-Writes data/online_fetch.csv (one row per item per run) for review.
+Gentle by design: one request per item, DELAY seconds apart, a User-Agent that
+names this site. Only facts are kept (price, discount, discount dates); no
+Costco photos or product copy.
+
+Usage:
+  python3 tools/crawl_online.py            # fetch, write data/online_fetch.csv
+  python3 tools/crawl_online.py --apply    # also merge into data/observations.csv
+  python3 tools/crawl_online.py --debug 1492255   # print the raw price fields
 """
-import csv, html, json, re, sys, time, urllib.request, urllib.error
-from datetime import datetime, timezone, timedelta
+import csv, json, sys, time, urllib.error, urllib.request
+from collections import Counter
+from datetime import datetime, timedelta, timezone
 
 UA = "costco-price-jp research bot (+https://ipliny.github.io/costco-price-jp/)"
+API = "https://www.costco.co.jp/rest/v2/japan/products/{}?fields=FULL&lang=ja&curr=JPY"
+PAGE = "https://www.costco.co.jp/p/{}"
 DELAY = 6
 JST = timezone(timedelta(hours=9))
+OBS = "data/observations.csv"
+FETCH = "data/online_fetch.csv"
+ONLINE_STORE = "線上商店"
+SOURCE = "官網自動取得"
 
 
-def fetch(url):
-    req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept-Language": "ja"})
+def fetch_json(url):
+    req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "application/json"})
     try:
         with urllib.request.urlopen(req, timeout=60) as r:
-            return r.status, r.geturl(), r.read().decode("utf-8", "replace")
+            return r.status, json.loads(r.read().decode("utf-8"))
     except urllib.error.HTTPError as e:
-        return e.code, url, ""
+        return e.code, None
+    except (urllib.error.URLError, TimeoutError, ValueError):
+        return 0, None
 
 
-def ld_products(page):
-    out = []
-    for m in re.finditer(r'<script[^>]*application/ld\+json[^>]*>(.*?)</script>', page, re.S):
-        try:
-            d = json.loads(html.unescape(m.group(1)))
-        except ValueError:
-            continue
-        for x in d if isinstance(d, list) else [d]:
-            if isinstance(x, dict) and str(x.get("@type", "")).lower() == "product":
-                out.append(x)
-    return out
+def yen(p):
+    """Integer yen from an OCC price object like {"value": 3598.0}."""
+    if isinstance(p, dict) and p.get("value") is not None:
+        return int(round(float(p["value"])))
+    return None
 
 
-def parse(item, page):
-    prods = [p for p in ld_products(page) if str(p.get("sku", "")).strip() == item] or ld_products(page)
-    if not prods:
-        return None
-    p = prods[0]
-    offers = p.get("offers") or {}
-    if isinstance(offers, list):
-        offers = offers[0] if offers else {}
+def parse(item, d):
+    """Pick the price facts out of the product API response."""
+    if not d or str(d.get("code", "")) != item:
+        return {"status": "not_online"}
+    price = yen(d.get("price"))
+    ptype = (d.get("price") or {}).get("priceType", "")
+    rng = d.get("priceRange") or {}
+    if price is None or ptype == "FROM":
+        price = yen(rng.get("minPrice")) or price
+    coupon = d.get("couponDiscount") or {}
+    discount = int(round(float(coupon.get("discountValue") or 0)))
+    stock = ((d.get("stock") or {}).get("stockLevelStatus") or "")
     return {
-        "name": p.get("name", ""),
-        "sku": p.get("sku", ""),
-        "price": offers.get("price", ""),
-        "currency": offers.get("priceCurrency", ""),
-        "availability": str(offers.get("availability", "")).rsplit("/", 1)[-1],
+        "status": "ok" if price else "no_price",
+        "list_price": price or "",
+        "discount": discount or "",
+        "price": (price - discount) if price else "",
+        "promo_from": (coupon.get("localDiscountStartDate") or "")[:10] if discount else "",
+        "promo_end": (coupon.get("localDiscountEndDate") or "")[:10] if discount else "",
+        "variants": "range" if ptype == "FROM" or rng.get("minPrice") else "",
+        "stock": stock,
     }
 
 
-def items_from_csv(path="data/observations.csv"):
-    with open(path, encoding="utf-8") as f:
-        return sorted({r["item_no"].strip() for r in csv.DictReader(f) if r["item_no"].strip()}, key=int)
+def read_obs():
+    with open(OBS, encoding="utf-8", newline="") as f:
+        r = csv.DictReader(f)
+        return r.fieldnames, list(r)
+
+
+def tracked_items(rows):
+    """Item numbers with at least one warehouse record, and our own name for each."""
+    names = {}
+    for r in rows:
+        if r["item_no"] and r["store"] != ONLINE_STORE:
+            names.setdefault(r["item_no"], Counter())[r["name"]] += 1
+    return {k: v.most_common(1)[0][0] for k, v in sorted(names.items(), key=lambda kv: int(kv[0]))}
+
+
+def apply(fields, rows, results, today):
+    """Merge fetched prices: extend the latest online row if unchanged, else add one."""
+    added = extended = 0
+    for res in results:
+        if res["status"] != "ok":
+            continue
+        item = res["item_no"]
+        mine = [r for r in rows if r["item_no"] == item and r["source_type"] == SOURCE]
+        last = max(mine, key=lambda r: r["period_to"], default=None)
+        same = last and all(str(last[k]) == str(res[k]) for k in ("price", "list_price", "discount", "promo_end"))
+        if same:
+            if last["period_to"] < today:
+                last["period_to"] = today
+                extended += 1
+            continue
+        note, note_ja = "", ""
+        if res["variants"]:
+            note, note_ja = "有多個規格，記錄最低價", "複数の仕様があるため最安値を記録"
+        rows.append({
+            **{k: "" for k in fields},
+            "record_id": f"ON-{item}-{today.replace('-', '')}",
+            "store": ONLINE_STORE, "source_type": SOURCE, "item_no": item, "name": res["name"],
+            "price": res["price"], "price_unit": "件", "list_price": res["list_price"] if res["discount"] else "",
+            "discount": res["discount"], "promo_end": res["promo_end"],
+            "period_from": today, "period_to": today,
+            "note": note, "note_ja": note_ja, "review_status": "已查核",
+        })
+        added += 1
+    with open(OBS, "w", encoding="utf-8", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=fields, lineterminator="\n")
+        w.writeheader()
+        w.writerows(rows)
+    return added, extended
 
 
 def main(argv):
-    debug = "--debug" in argv
-    items = [a for a in argv if a.isdigit()] or items_from_csv()
-    now = datetime.now(JST).strftime("%Y-%m-%d %H:%M")
-    rows = []
-    for i, item in enumerate(items):
+    fields, rows = read_obs()
+    items = tracked_items(rows)
+    wanted = [a for a in argv if a.isdigit()]
+    if wanted:
+        items = {k: items.get(k, "") for k in wanted}
+    now = datetime.now(JST)
+    today = now.strftime("%Y-%m-%d")
+    results = []
+    for i, (item, name) in enumerate(items.items()):
         if i:
             time.sleep(DELAY)
-        status, final_url, page = fetch(f"https://www.costco.co.jp/p/{item}")
-        info = parse(item, page) if status == 200 else None
-        row = {"item_no": item, "fetched_at": now, "http": status, "url": final_url, **(info or {})}
-        rows.append(row)
-        print(json.dumps(row, ensure_ascii=False), flush=True)
-        if debug:
-            print("  ld+json:", json.dumps(ld_products(page), ensure_ascii=False)[:1500])
-            m = re.search(r'<script id="storefront-state" type="application/json">(.*?)</script>', page, re.S)
-            if m:
-                state = json.loads(html.unescape(m.group(1)))
-                def walk(o, path=""):
-                    if isinstance(o, dict):
-                        for k, v in o.items():
-                            walk(v, f"{path}.{k}")
-                    elif isinstance(o, list):
-                        for i, v in enumerate(o[:5]):
-                            walk(v, f"{path}[{i}]")
-                    elif re.search(r"(?i)discount|coupon|price|promo|valid|stock", path):
-                        print("   state", path[-140:], "=", str(o)[:120])
-                walk(state)
-            time.sleep(DELAY)
-            st, _, api = fetch(f"https://www.costco.co.jp/rest/v2/japan/products/{item}?fields=FULL&lang=ja&curr=JPY")
-            print("   occ api", st, re.sub(r"\s+", " ", api)[:200])
-            for kw in ["discount", "coupon", "price"]:
-                for mm in list(re.finditer(kw, api, re.I))[:4]:
-                    print(f"   api[{kw}]", api[max(0, mm.start() - 60):mm.start() + 160])
-    fields = ["item_no", "fetched_at", "http", "url", "sku", "name", "price", "currency", "availability"]
-    with open("data/online_fetch.csv", "w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")
+        http, d = fetch_json(API.format(item))
+        res = {"item_no": item, "name": name, "fetched_at": now.strftime("%Y-%m-%d %H:%M"),
+               "http": http, "url": PAGE.format(item), **parse(item, d)}
+        results.append(res)
+        print(json.dumps(res, ensure_ascii=False), flush=True)
+        if "--debug" in argv and d:
+            keep = {k: d.get(k) for k in ("code", "price", "priceRange", "couponDiscount", "discountMessage",
+                                          "stock", "purchasable", "as400Discount") if k in d}
+            print("   raw:", json.dumps(keep, ensure_ascii=False)[:1500])
+    cols = ["item_no", "name", "fetched_at", "http", "status", "price", "list_price", "discount",
+            "promo_from", "promo_end", "variants", "stock", "url"]
+    with open(FETCH, "w", encoding="utf-8", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=cols, extrasaction="ignore", lineterminator="\n")
         w.writeheader()
-        w.writerows(rows)
-    ok = sum(1 for r in rows if r.get("price") not in (None, ""))
-    print(f"done: {ok}/{len(rows)} items have an online price")
+        w.writerows(results)
+    ok = sum(r["status"] == "ok" for r in results)
+    print(f"done: {ok}/{len(results)} items have an online price")
+    if "--apply" in argv:
+        added, extended = apply(fields, rows, results, today)
+        print(f"observations.csv: {added} rows added, {extended} extended")
+    # Fail loudly if the site changed shape and nothing parses any more.
+    if results and ok == 0:
+        sys.exit(1)
 
 
 if __name__ == "__main__":
