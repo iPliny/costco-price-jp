@@ -30,6 +30,8 @@ function parseCsv(text) {
 
 const num = (v) => (v === '' ? null : Number(v));
 
+export const COMMUNITY = '社群回報';
+
 export function loadObservations() {
   const file = path.resolve('data/observations.csv');
   return parseCsv(fs.readFileSync(file, 'utf8'))
@@ -57,8 +59,12 @@ export function loadProducts() {
   const products = [...byId.values()];
   for (const p of products) {
     p.stores = [...new Set(p.observations.map((o) => o.store))];
-    const unitPrices = p.observations.filter((o) => o.price_unit === '件').map((o) => o.price);
-    const per100 = p.observations.filter((o) => o.price_unit === '100g').map((o) => o.price);
+    // 社群回報只在商品沒有其他來源時才用來算價格區間。
+    const checked = p.observations.filter((o) => o.source_type !== COMMUNITY);
+    const basis = checked.length ? checked : p.observations;
+    p.communityOnly = !checked.length;
+    const unitPrices = basis.filter((o) => o.price_unit === '件').map((o) => o.price);
+    const per100 = basis.filter((o) => o.price_unit === '100g').map((o) => o.price);
     p.minPrice = unitPrices.length ? Math.min(...unitPrices) : null;
     p.maxPrice = unitPrices.length ? Math.max(...unitPrices) : null;
     p.min100g = per100.length ? Math.min(...per100) : null;
@@ -72,4 +78,15 @@ export const yen = (n) => (n == null ? '—' : n.toLocaleString('ja-JP') + '円'
 export function priceRange(lo, hi, suffix = '') {
   if (lo == null) return null;
   return lo === hi ? yen(lo) + suffix : `${yen(lo)}–${yen(hi)}${suffix}`;
+}
+
+// 每週熱度：以該週在各店聊天群組提到商品的不同人數排名（各店合計），只存統計結果。
+export function loadHeat() {
+  const file = path.resolve('data/weekly_heat.csv');
+  if (!fs.existsSync(file)) return null;
+  const rows = parseCsv(fs.readFileSync(file, 'utf8')).map((r) => ({ ...r, rank: Number(r.rank), people: Number(r.people) }));
+  if (!rows.length) return null;
+  const latest = rows.map((r) => r.week_to).sort().at(-1);
+  const week = rows.filter((r) => r.week_to === latest).sort((a, b) => a.rank - b.rank).slice(0, 5);
+  return { from: week[0].week_from, to: latest, items: week };
 }

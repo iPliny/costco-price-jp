@@ -1,6 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
-import { yen } from '../lib/data.js';
+import { yen, COMMUNITY } from '../lib/data.js';
 import { t, storeName, sourceName, statusName, noteText, localePath } from '../lib/i18n.js';
 
 const { p, lang } = Astro.props;
@@ -15,6 +15,7 @@ const obs = [...p.observations].sort((a, b) => a.store.localeCompare(b.store, 'j
 
   <h2>{s.history}</h2>
   <p class="muted small">{s.historyNote}</p>
+  {obs.some((o) => o.source_type === COMMUNITY) && <p class="muted small">{s.communityNote}</p>}
   <ul class="obs">
     {obs.map((o) => (
       <li>
