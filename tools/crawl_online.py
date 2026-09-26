@@ -11,7 +11,11 @@ Costco photos or product copy.
 Usage:
   python3 tools/crawl_online.py            # fetch, write data/online_fetch.csv
   python3 tools/crawl_online.py --apply    # also merge into data/observations.csv
+  python3 tools/crawl_online.py --merge-only     # merge an existing data/online_fetch.csv
   python3 tools/crawl_online.py --debug 1492255   # print the raw price fields
+
+The workflow fetches first and merges afterwards, against a freshly pulled main,
+so a long run never overwrites rows other people committed meanwhile.
 """
 import csv, json, sys, time, urllib.error, urllib.request
 from collections import Counter
@@ -27,6 +31,10 @@ FETCH = "data/online_fetch.csv"
 ONLINE_STORE = "線上商店"
 SOURCE = "官網自動取得"
 PUBLIC_STATUSES = {"已查核", "待確認"}
+# Stop early rather than keep hitting the site if it starts refusing us.
+MAX_CONSECUTIVE_ERRORS = 5
+FETCH_COLS = ["item_no", "name", "fetched_at", "http", "status", "price", "list_price", "discount",
+              "promo_from", "promo_end", "variants", "stock", "url"]
 
 
 def fetch_json(url):
@@ -127,15 +135,27 @@ def apply(fields, rows, results, today):
     return added, extended
 
 
+def merge_only(today):
+    fields, rows = read_obs()
+    with open(FETCH, encoding="utf-8", newline="") as f:
+        results = list(csv.DictReader(f))
+    added, extended = apply(fields, rows, results, today)
+    print(f"observations.csv: {added} rows added, {extended} extended")
+
+
 def main(argv):
+    today = datetime.now(JST).strftime("%Y-%m-%d")
+    if "--merge-only" in argv:
+        merge_only(today)
+        return
     fields, rows = read_obs()
     items = tracked_items(rows)
     wanted = [a for a in argv if a.isdigit()]
     if wanted:
         items = {k: items.get(k, "") for k in wanted}
     now = datetime.now(JST)
-    today = now.strftime("%Y-%m-%d")
-    results = []
+    print(f"fetching {len(items)} items, {DELAY}s apart", flush=True)
+    results, errors = [], 0
     for i, (item, name) in enumerate(items.items()):
         if i:
             time.sleep(DELAY)
@@ -148,18 +168,20 @@ def main(argv):
             keep = {k: d.get(k) for k in ("code", "price", "priceRange", "couponDiscount", "discountMessage",
                                           "stock", "purchasable", "as400Discount") if k in d}
             print("   raw:", json.dumps(keep, ensure_ascii=False)[:1500])
-    cols = ["item_no", "name", "fetched_at", "http", "status", "price", "list_price", "discount",
-            "promo_from", "promo_end", "variants", "stock", "url"]
+        errors = errors + 1 if http not in (200, 404) else 0
+        if errors >= MAX_CONSECUTIVE_ERRORS:
+            print(f"stopping early: {errors} errors in a row (last HTTP {http})", flush=True)
+            break
     with open(FETCH, "w", encoding="utf-8", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=cols, extrasaction="ignore", lineterminator="\n")
+        w = csv.DictWriter(f, fieldnames=FETCH_COLS, extrasaction="ignore", lineterminator="\n")
         w.writeheader()
         w.writerows(results)
     ok = sum(r["status"] == "ok" for r in results)
-    print(f"done: {ok}/{len(results)} items have an online price")
+    print(f"done: {ok}/{len(results)} fetched items have an online price ({len(items)} tracked)")
     if "--apply" in argv:
         added, extended = apply(fields, rows, results, today)
         print(f"observations.csv: {added} rows added, {extended} extended")
-    # Fail loudly if the site changed shape and nothing parses any more.
+    # Fail loudly if the site changed shape or blocked us and nothing parses any more.
     if results and ok == 0:
         sys.exit(1)
 
