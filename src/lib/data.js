@@ -80,13 +80,10 @@ export function priceRange(lo, hi, suffix = '') {
   return lo === hi ? yen(lo) + suffix : `${yen(lo)}–${yen(hi)}${suffix}`;
 }
 
-// 每週熱度：以該週在各店聊天群組提到商品的不同人數排名（各店合計），只存統計結果。
+// 每週熱度：以該週在各店聊天群組提到商品的不同人數排名（各店合計）。
+// 只存統計數字與改寫過的匿名摘要，不存暱稱或原文。最新一週排在最後。
 export function loadHeat() {
-  const file = path.resolve('data/weekly_heat.csv');
-  if (!fs.existsSync(file)) return null;
-  const rows = parseCsv(fs.readFileSync(file, 'utf8')).map((r) => ({ ...r, rank: Number(r.rank), people: Number(r.people) }));
-  if (!rows.length) return null;
-  const latest = rows.map((r) => r.week_to).sort().at(-1);
-  const week = rows.filter((r) => r.week_to === latest).sort((a, b) => a.rank - b.rank).slice(0, 5);
-  return { from: week[0].week_from, to: latest, items: week };
+  const file = path.resolve('data/weekly_heat.json');
+  if (!fs.existsSync(file)) return [];
+  return JSON.parse(fs.readFileSync(file, 'utf8')).sort((a, b) => a.to.localeCompare(b.to));
 }

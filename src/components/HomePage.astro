@@ -1,38 +1,16 @@
 ---
 import Base from '../layouts/Base.astro';
-import { loadProducts, loadHeat, priceRange } from '../lib/data.js';
+import { loadProducts, priceRange } from '../lib/data.js';
 import { t, storeName, localePath } from '../lib/i18n.js';
 
 const { lang } = Astro.props;
 const s = t(lang);
 const products = loadProducts();
-const heat = loadHeat();
 const stores = [...new Set(products.flatMap((p) => p.stores))].sort((a, b) => a.localeCompare(b, 'ja'));
 ---
 <Base lang={lang} path="" title={s.homeTitle}>
   <h1>{s.heading}</h1>
   <p class="muted">{s.summary(products.length, stores.length)}</p>
-
-  {heat && (
-    <section class="heat" aria-labelledby="heat-title">
-      <div class="heat-head">
-        <h2 id="heat-title">{s.heatTitle}</h2>
-        <span class="muted small">{s.heatPeriod(heat.from, heat.to)}</span>
-      </div>
-      <ol>
-        {heat.items.map((h) => (
-          <li>
-            <button type="button" class="heat-item" data-q={h.query}>
-              <span class="rank">{h.rank}</span>
-              <span class="heat-name">{lang === 'ja' ? h.name_ja : h.name_zh}</span>
-              <span class="muted small">{s.heatPeople(h.people)}</span>
-            </button>
-          </li>
-        ))}
-      </ol>
-      <p class="muted small">{s.heatNote}</p>
-    </section>
-  )}
 
   <input id="q" type="search" placeholder={s.searchPlaceholder} aria-label={s.searchPlaceholder} autocomplete="off" />
   <div class="chips" id="stores">
@@ -76,17 +54,6 @@ const stores = [...new Set(products.flatMap((p) => p.stores))].sort((a, b) => a.
     .price { font-weight: 700; font-size: 1.05rem; font-variant-numeric: tabular-nums; }
     .small { font-size: .8rem; }
     .co { margin-left: 8px; font-weight: 400; vertical-align: middle; }
-    .heat { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin: 16px 0 4px; }
-    .heat-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 12px; }
-    .heat h2 { font-size: 1.05rem; margin: 0; }
-    .heat ol { list-style: none; padding: 0; margin: 8px 0; display: grid; gap: 4px; }
-    .heat-item { width: 100%; display: flex; align-items: baseline; gap: 10px; background: none; border: 0; padding: 6px 0;
-      color: var(--text); font: inherit; text-align: left; cursor: pointer; border-bottom: 1px solid var(--line); }
-    .heat li:last-child .heat-item { border-bottom: 0; }
-    .rank { flex: none; width: 1.6em; height: 1.6em; border-radius: 999px; background: var(--accent-bg); color: var(--accent);
-      font-weight: 700; display: inline-flex; align-items: center; justify-content: center; font-size: .85rem; }
-    .heat-name { flex: 1; font-weight: 600; }
-    .heat p { margin: 0; }
   </style>
 
   <script>
@@ -107,11 +74,6 @@ const stores = [...new Set(products.flatMap((p) => p.stores))].sort((a, b) => a.
       empty.hidden = shown > 0;
     }
     q.addEventListener('input', apply);
-    for (const b of document.querySelectorAll('.heat-item')) b.addEventListener('click', () => {
-      q.value = b.dataset.q;
-      apply();
-      q.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
     const initial = new URLSearchParams(location.search).get('q');
     if (initial) { q.value = initial; apply(); }
     for (const c of chips) c.addEventListener('click', () => {

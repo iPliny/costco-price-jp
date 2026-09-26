@@ -64,6 +64,8 @@ const abs = (l) => (Astro.site ? new URL(localePath(l, path), Astro.site).href :
       header.site a.brand { font-weight: 700; text-decoration: none; color: var(--text); font-size: 1.1rem; }
       a.lang-switch { font-size: .85rem; text-decoration: none; border: 1px solid var(--line); border-radius: 999px;
         padding: 4px 12px; color: var(--text); white-space: nowrap; }
+      .site-nav { display: flex; align-items: center; gap: 12px; }
+      a.nav-link { font-size: .9rem; font-weight: 600; text-decoration: none; }
       a.lang-switch:hover, a.lang-switch:focus-visible { border-color: var(--accent); color: var(--accent); }
       .preview-bar { background: var(--warn-bg); color: var(--warn); font-size: .85rem; padding: 6px 0; }
       main { padding: 20px 0 40px; }
@@ -81,7 +83,10 @@ const abs = (l) => (Astro.site ? new URL(localePath(l, path), Astro.site).href :
     )}
     <header class="site"><div class="wrap">
       <a class="brand" href={localePath(lang)}>{s.brand}</a>
-      <a class="lang-switch" href={localePath(other, path)} hreflang={LANGS[other].htmlLang} lang={LANGS[other].htmlLang}>{LANGS[other].label}</a>
+      <nav class="site-nav">
+        <a class="nav-link" href={localePath(lang, 'ranking/')}>{s.navRanking}</a>
+        <a class="lang-switch" href={localePath(other, path)} hreflang={LANGS[other].htmlLang} lang={LANGS[other].htmlLang}>{LANGS[other].label}</a>
+      </nav>
     </div></header>
     <main class="wrap"><slot /></main>
     <footer><div class="wrap">
