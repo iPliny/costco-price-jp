@@ -1,7 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import { loadHeat, loadProducts, loadReports, yen, COMMUNITY } from '../lib/data.js';
-import { t, storeName, sourceName, noteText } from '../lib/i18n.js';
+import { t, storeName, sourceName, noteText, localePath } from '../lib/i18n.js';
 
 const { lang } = Astro.props;
 const s = t(lang);
@@ -9,6 +9,9 @@ const s = t(lang);
 const weeks = loadHeat().reverse();
 // 每個排名商品直接列出價格：站上對應商品的價牌／官網紀錄，加上當週群組回報（依紀錄編號去重）。
 const products = loadProducts();
+// 站上有商品頁的價格小格子可以點進去看歷史紀錄。
+const pageIds = new Set(products.map((p) => p.id));
+const pageHref = (o) => (o.item_no && pageIds.has(o.item_no) ? localePath(lang, `item/${o.item_no}/`) : null);
 function prices(h) {
   const q = h.query.toLowerCase();
   const matched = products
@@ -54,11 +57,18 @@ const summary = (h) => (lang === 'ja' ? h.summary_ja : h.summary_zh);
                     <ul class="reports">
                       {prices(h).map((o) => (
                         <li>
-                          <span class="r-store">{storeName(lang, o.store)}</span>
-                          <span class="r-price">{yen(o.price)}{o.price_unit === '100g' && s.per100g}</span>
-                          <span class="muted small">{o.name}{o.spec && !o.name.includes(o.spec) && `・${o.spec}`}</span>
-                          <span class="muted small">{sourceName(lang, o.source_type)}・{o.source_type === COMMUNITY ? s.reportedOn(o.period_from, o.period_to) : s.period(o.period_from, o.period_to)}</span>
-                          {noteText(lang, o) && <span class="muted small">{noteText(lang, o)}</span>}
+                          {(() => {
+                            const Tag = pageHref(o) ? 'a' : 'div';
+                            return (
+                              <Tag class={pageHref(o) ? 'r-card linked' : 'r-card'} href={pageHref(o)}>
+                                <span class="r-store">{storeName(lang, o.store)}</span>
+                                <span class="r-price">{yen(o.price)}{o.price_unit === '100g' && s.per100g}</span>
+                                <span class="muted small">{o.name}{o.spec && !o.name.includes(o.spec) && `・${o.spec}`}</span>
+                                <span class="muted small">{sourceName(lang, o.source_type)}・{o.source_type === COMMUNITY ? s.reportedOn(o.period_from, o.period_to) : s.period(o.period_from, o.period_to)}</span>
+                                {noteText(lang, o) && <span class="muted small">{noteText(lang, o)}</span>}
+                              </Tag>
+                            );
+                          })()}
                         </li>
                       ))}
                     </ul>
@@ -94,8 +104,11 @@ const summary = (h) => (lang === 'ja' ? h.summary_ja : h.summary_zh);
     .body ul { margin: 0 0 8px; padding-left: 1.2em; display: grid; gap: 4px; }
     .body p { margin: 4px 0; }
     .body ul.reports { list-style: none; padding: 0; gap: 6px; }
-    .reports li { display: grid; grid-template-columns: 1fr auto; gap: 0 12px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; }
-    .reports li > .muted { grid-column: 1 / -1; }
+    .r-card { display: grid; grid-template-columns: 1fr auto; gap: 0 12px; padding: 8px 10px; border: 1px solid var(--line);
+      border-radius: 8px; color: var(--text); text-decoration: none; }
+    .r-card > .muted { grid-column: 1 / -1; }
+    .r-card.linked:hover, .r-card.linked:focus-visible { border-color: var(--accent); }
+    .r-card.linked .r-store::after { content: ' →'; color: var(--accent); }
     .r-store { font-weight: 600; }
     .r-price { font-weight: 700; font-variant-numeric: tabular-nums; }
   </style>
