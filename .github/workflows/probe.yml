@@ -7,9 +7,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          for i in 96069 98725 42417 13221 88881 1492255; do
+          for i in 1313100 13221 1358897 14110 1492255 23571 30813 3227201 34914 42417 45572 51897 54201 58395 586250 58863 59729 59735 60399 75892 76516 77410 78929 79315 82786 83200 83520 84552 84603 84739 88491 90054 96069 98725 ; do
             curl -s -A "costco-price-jp research bot (+https://ipliny.github.io/costco-price-jp/)" -H "Accept: application/json" \
               "https://www.costco.co.jp/rest/v2/japan/products/$i?fields=FULL&lang=ja&curr=JPY" \
-              | python3 -c 'import json,sys; d=json.load(sys.stdin); print(json.dumps({k:v for k,v in d.items() if k not in ("description","summary","images","classifications","categories","reviews","productReferences","baseOptions","variantOptions","potentialPromotions","futureStocks","volumePrices")}, ensure_ascii=False)[:3000])'
-            echo; sleep 6
+              | python3 -c 'import json,sys; d=json.load(sys.stdin); print("PROBE", d.get("code"), [x["value"].get("altText") for x in d.get("decalData") or []], "hide=%s" % d.get("hidePriceValue"), "purch=%s" % d.get("purchasable"), "wh_only_text=%s" % ("倉庫店のみ" in (d.get("delivery") or "")))'
+            sleep 6
           done
