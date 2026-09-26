@@ -15,8 +15,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Debug price fields on three items (one with a live discount)
-        run: python3 tools/crawl_online.py --debug 84838
+      - name: Render one discounted item in a browser
+        run: |
+          npm i --no-save playwright@1.47.2 >/dev/null 2>&1
+          npx playwright install --with-deps chromium >/dev/null 2>&1
+          node tools/render_probe.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: probe
