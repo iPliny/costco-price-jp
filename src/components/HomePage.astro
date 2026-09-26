@@ -1,0 +1,82 @@
+---
+import Base from '../layouts/Base.astro';
+import { loadProducts, priceRange } from '../lib/data.js';
+import { t, storeName, localePath } from '../lib/i18n.js';
+
+const { lang } = Astro.props;
+const s = t(lang);
+const products = loadProducts();
+const stores = [...new Set(products.flatMap((p) => p.stores))].sort((a, b) => a.localeCompare(b, 'ja'));
+---
+<Base lang={lang} path="" title={s.homeTitle}>
+  <h1>{s.heading}</h1>
+  <p class="muted">{s.summary(products.length, stores.length)}</p>
+
+  <input id="q" type="search" placeholder={s.searchPlaceholder} aria-label={s.searchPlaceholder} autocomplete="off" />
+  <div class="chips" id="stores">
+    <button class="chip active" data-store="">{s.allStores}</button>
+    {stores.map((st) => <button class="chip" data-store={st}>{storeName(lang, st)}</button>)}
+  </div>
+
+  <ul class="list" id="list">
+    {products.map((p) => {
+      const range = priceRange(p.minPrice, p.maxPrice) ?? priceRange(p.min100g, p.max100g, s.per100g);
+      return (
+        <li data-search={`${p.name} ${p.item_no} ${p.spec}`.toLowerCase()} data-stores={p.stores.join('|')}>
+          <a href={localePath(lang, `item/${p.id}/`)}>
+            <span class="name">{p.name}</span>
+            <span class="meta muted">{p.item_no ? `#${p.item_no}` : s.itemNoMissing}{p.spec && `・${p.spec}`}</span>
+            <span class="row">
+              <span class="price">{range}</span>
+              <span class="muted small">{s.recordCount(p.observations.length)}・{p.stores.map((st) => storeName(lang, st)).join(s.storeJoin)}</span>
+            </span>
+          </a>
+        </li>
+      );
+    })}
+  </ul>
+  <p id="empty" class="muted" hidden>{s.empty}</p>
+
+  <style>
+    h1 { font-size: 1.5rem; margin: 0 0 4px; }
+    input[type=search] { width: 100%; font-size: 1rem; padding: 12px 14px; border-radius: 10px;
+      border: 1px solid var(--line); background: var(--card); color: var(--text); margin: 12px 0; }
+    .chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 12px; }
+    .chip { flex: none; border: 1px solid var(--line); background: var(--card); color: var(--text);
+      border-radius: 999px; padding: 6px 12px; font-size: .85rem; cursor: pointer; }
+    .chip.active { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); }
+    .list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+    .list a { display: grid; gap: 2px; padding: 12px 14px; background: var(--card); border: 1px solid var(--line);
+      border-radius: 10px; text-decoration: none; color: var(--text); }
+    .name { font-weight: 600; }
+    .meta { font-size: .85rem; }
+    .row { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; align-items: baseline; }
+    .price { font-weight: 700; font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+    .small { font-size: .8rem; }
+  </style>
+
+  <script>
+    const q = document.getElementById('q');
+    const items = [...document.querySelectorAll('#list li')];
+    const chips = [...document.querySelectorAll('.chip')];
+    const empty = document.getElementById('empty');
+    let store = '';
+    function apply() {
+      const term = q.value.trim().toLowerCase();
+      let shown = 0;
+      for (const li of items) {
+        const ok = (!term || li.dataset.search.includes(term)) &&
+          (!store || li.dataset.stores.split('|').includes(store));
+        li.hidden = !ok;
+        if (ok) shown++;
+      }
+      empty.hidden = shown > 0;
+    }
+    q.addEventListener('input', apply);
+    for (const c of chips) c.addEventListener('click', () => {
+      chips.forEach((x) => x.classList.toggle('active', x === c));
+      store = c.dataset.store;
+      apply();
+    });
+  </script>
+</Base>

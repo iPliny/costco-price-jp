@@ -73,9 +73,3 @@ export function priceRange(lo, hi, suffix = '') {
   if (lo == null) return null;
   return lo === hi ? yen(lo) + suffix : `${yen(lo)}–${yen(hi)}${suffix}`;
 }
-
-export function period(o) {
-  if (o.period_from && o.period_to) return `${o.period_from} 至 ${o.period_to} 間曾觀測`;
-  if (o.period_from) return `${o.period_from} 起曾觀測`;
-  return '觀測日期待確認';
-}

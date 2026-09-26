@@ -2,6 +2,8 @@
 
 日本 Costco 各倉庫店的價格觀測紀錄網站（Astro 靜態網站，部署在 GitHub Pages）。
 
+日文版在網站根目錄，繁體中文版在 `/zh-hant/`，每頁右上角可切換。介面文字在 `src/lib/i18n.js`；紀錄的備註用 `note`（中文）與 `note_ja`（日文）兩欄，新增備註時兩欄都要填。
+
 ## 資料
 
 所有紀錄在 `data/observations.csv`，一列一筆觀測。

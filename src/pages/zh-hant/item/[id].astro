@@ -1,10 +1,10 @@
 ---
-import ItemPage from '../../components/ItemPage.astro';
-import { loadProducts } from '../../lib/data.js';
+import ItemPage from '../../../components/ItemPage.astro';
+import { loadProducts } from '../../../lib/data.js';
 
 export function getStaticPaths() {
   return loadProducts().map((p) => ({ params: { id: p.id }, props: { p } }));
 }
 const { p } = Astro.props;
 ---
-<ItemPage p={p} lang="ja" />
+<ItemPage p={p} lang="zh" />

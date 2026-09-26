@@ -1,0 +1,66 @@
+---
+import Base from '../layouts/Base.astro';
+import { yen } from '../lib/data.js';
+import { t, storeName, sourceName, statusName, noteText, localePath } from '../lib/i18n.js';
+
+const { p, lang } = Astro.props;
+const s = t(lang);
+const base = import.meta.env.BASE_URL;
+const obs = [...p.observations].sort((a, b) => a.store.localeCompare(b.store, 'ja') || (b.period_to || '').localeCompare(a.period_to || ''));
+---
+<Base lang={lang} path={`item/${p.id}/`} title={s.itemTitle(p.name)} description={s.itemDescription(p.name, p.item_no)}>
+  <p><a href={localePath(lang)}>{s.back}</a></p>
+  <h1>{p.name}</h1>
+  <p class="muted">{s.itemNoLabel(p.item_no)}</p>
+
+  <h2>{s.history}</h2>
+  <p class="muted small">{s.historyNote}</p>
+  <ul class="obs">
+    {obs.map((o) => (
+      <li>
+        <div class="top">
+          <span class="store">{storeName(lang, o.store)}</span>
+          <span class={o.review_status === '已查核' ? 'badge ok' : 'badge pending'}>{statusName(lang, o.review_status)}</span>
+        </div>
+        <div class="price">
+          {yen(o.price)}{o.price_unit === '100g' && <span class="unit">{s.per100g}</span>}
+          {o.list_price && <span class="was muted">{s.wasPrice} {yen(o.list_price)}</span>}
+          {o.discount && <span class="off">{s.off} {yen(o.discount)}</span>}
+        </div>
+        <dl>
+          {o.spec && <><dt>{s.spec}</dt><dd>{o.spec}</dd></>}
+          <dt>{s.source}</dt><dd>{sourceName(lang, o.source_type)}</dd>
+          <dt>{s.observed}</dt><dd>{s.period(o.period_from, o.period_to)}</dd>
+          {o.promo_end && <><dt>{s.promoEnd}</dt><dd>{o.promo_end}</dd></>}
+          {noteText(lang, o) && <><dt>{s.note}</dt><dd>{noteText(lang, o)}</dd></>}
+        </dl>
+        {o.evidence_image && (
+          <details class="evidence">
+            <summary>{s.showScreenshot}</summary>
+            <img src={`${base}${o.evidence_image}`} alt={s.screenshotAlt(o.name)} loading="lazy" width="800" />
+          </details>
+        )}
+      </li>
+    ))}
+  </ul>
+
+  <style>
+    h1 { font-size: 1.35rem; margin: 0; }
+    h2 { font-size: 1.1rem; margin: 24px 0 4px; }
+    .small { font-size: .85rem; }
+    .obs { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 8px; }
+    .obs li { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+    .top { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+    .store { font-weight: 600; }
+    .price { font-size: 1.3rem; font-weight: 700; margin: 4px 0; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+    .unit { font-size: .9rem; font-weight: 400; }
+    .was { font-size: .85rem; font-weight: 400; text-decoration: line-through; }
+    .off { font-size: .8rem; font-weight: 600; color: var(--ok); background: var(--ok-bg); padding: 1px 8px; border-radius: 999px; }
+    dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; margin: 0; font-size: .88rem; }
+    dt { color: var(--muted); }
+    dd { margin: 0; }
+    .evidence { margin-top: 8px; font-size: .88rem; }
+    .evidence summary { cursor: pointer; color: var(--accent); }
+    .evidence img { display: block; max-width: 100%; height: auto; margin-top: 8px; border: 1px solid var(--line); border-radius: 8px; }
+  </style>
+</Base>

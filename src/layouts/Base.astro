@@ -1,15 +1,23 @@
 ---
 import { PREVIEW } from '../lib/data.js';
-const { title, description = '日本好市多（Costco Japan）各倉庫店價格紀錄查詢。' } = Astro.props;
-const base = import.meta.env.BASE_URL;
+import { LANGS, t, localePath } from '../lib/i18n.js';
+// path：語系內的相對路徑（首頁為 ''，商品頁為 'item/<id>/'），用來產生切換連結與 hreflang。
+const { lang = 'ja', path = '', title, description = t(lang).siteDescription } = Astro.props;
+const s = t(lang);
+const other = lang === 'ja' ? 'zh' : 'ja';
+const abs = (l) => (Astro.site ? new URL(localePath(l, path), Astro.site).href : localePath(l, path));
 ---
 <!doctype html>
-<html lang="zh-Hant">
+<html lang={LANGS[lang].htmlLang}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    <link rel="canonical" href={abs(lang)} />
+    <link rel="alternate" hreflang="ja" href={abs('ja')} />
+    <link rel="alternate" hreflang="zh-Hant" href={abs('zh')} />
+    <link rel="alternate" hreflang="x-default" href={abs('ja')} />
     {PREVIEW && <meta name="robots" content="noindex" />}
     <style is:global>
       :root {
@@ -39,7 +47,11 @@ const base = import.meta.env.BASE_URL;
       .wrap { max-width: 880px; margin: 0 auto; padding: 0 16px; }
       header.site { background: var(--card); border-bottom: 1px solid var(--line); }
       header.site .wrap { display: flex; align-items: center; gap: 12px; min-height: 56px; }
+      header.site .wrap { justify-content: space-between; }
       header.site a.brand { font-weight: 700; text-decoration: none; color: var(--text); font-size: 1.1rem; }
+      a.lang-switch { font-size: .85rem; text-decoration: none; border: 1px solid var(--line); border-radius: 999px;
+        padding: 4px 12px; color: var(--text); white-space: nowrap; }
+      a.lang-switch:hover, a.lang-switch:focus-visible { border-color: var(--accent); color: var(--accent); }
       .preview-bar { background: var(--warn-bg); color: var(--warn); font-size: .85rem; padding: 6px 0; }
       main { padding: 20px 0 40px; }
       footer { color: var(--muted); font-size: .8rem; padding: 24px 0 40px; border-top: 1px solid var(--line); }
@@ -51,12 +63,13 @@ const base = import.meta.env.BASE_URL;
   </head>
   <body>
     {PREVIEW && (
-      <div class="preview-bar"><div class="wrap">內部預覽：含尚未查核的資料，正式站只會顯示已查核紀錄。</div></div>
+      <div class="preview-bar"><div class="wrap">{s.previewBar}</div></div>
     )}
-    <header class="site"><div class="wrap"><a class="brand" href={base}>Costco 價格紀錄</a></div></header>
+    <header class="site"><div class="wrap">
+      <a class="brand" href={localePath(lang)}>{s.brand}</a>
+      <a class="lang-switch" href={localePath(other, path)} hreflang={LANGS[other].htmlLang} lang={LANGS[other].htmlLang}>{LANGS[other].label}</a>
+    </div></header>
     <main class="wrap"><slot /></main>
-    <footer><div class="wrap">
-      價格來自門市價牌、官網等來源的觀測紀錄，標示為「某期間曾觀測到的價格」，不代表今日售價。實際價格以店內標示為準。本站與 Costco 無關。
-    </div></footer>
+    <footer><div class="wrap">{s.footer}</div></footer>
   </body>
 </html>
