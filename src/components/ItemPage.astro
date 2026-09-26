@@ -34,7 +34,7 @@ const obs = [...p.observations].sort((a, b) => storeOrder(a.store, b.store) || (
         <dl>
           {o.spec && <><dt>{s.spec}</dt><dd>{o.spec}</dd></>}
           <dt>{s.source}</dt><dd>{sourceName(lang, o.source_type)}</dd>
-          <dt>{s.observed}</dt><dd>{s.period(o.period_from, o.period_to)}</dd>
+          <dt>{s.observed}</dt><dd>{o.source_type === CRAWLED ? s.crawledOn(o.period_from, o.period_to) : s.period(o.period_from, o.period_to)}</dd>
           {o.promo_end && <><dt>{s.promoEnd}</dt><dd>{o.promo_end}</dd></>}
           {noteText(lang, o) && <><dt>{s.note}</dt><dd>{noteText(lang, o)}</dd></>}
         </dl>

@@ -1,6 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
-import { loadHeat, loadProducts, loadReports, yen, COMMUNITY } from '../lib/data.js';
+import { loadHeat, loadProducts, loadReports, yen, COMMUNITY, CRAWLED } from '../lib/data.js';
 import { t, storeName, sourceName, noteText, localePath } from '../lib/i18n.js';
 
 const { lang } = Astro.props;
@@ -64,7 +64,7 @@ const summary = (h) => (lang === 'ja' ? h.summary_ja : h.summary_zh);
                                 <span class="r-store">{storeName(lang, o.store)}</span>
                                 <span class="r-price">{yen(o.price)}{o.price_unit === '100g' && s.per100g}</span>
                                 <span class="muted small">{o.name}{o.spec && !o.name.includes(o.spec) && `・${o.spec}`}</span>
-                                <span class="muted small">{sourceName(lang, o.source_type)}・{o.source_type === COMMUNITY ? s.reportedOn(o.period_from, o.period_to) : s.period(o.period_from, o.period_to)}</span>
+                                <span class="muted small">{sourceName(lang, o.source_type)}・{o.source_type === COMMUNITY ? s.reportedOn(o.period_from, o.period_to) : o.source_type === CRAWLED ? s.crawledOn(o.period_from, o.period_to) : s.period(o.period_from, o.period_to)}</span>
                                 {noteText(lang, o) && <span class="muted small">{noteText(lang, o)}</span>}
                               </Tag>
                             );
