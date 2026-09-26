@@ -55,6 +55,12 @@ def yen(p):
     return None
 
 
+def warehouse_only(d):
+    decals = [((x.get("value") or {}).get("url") or "") + ((x.get("value") or {}).get("altText") or "")
+              for x in d.get("decalData") or []]
+    return any("WarehouseOnly" in t or "倉庫店限定" in t for t in decals)
+
+
 def parse(item, d):
     """Pick the price facts out of the product API response.
 
@@ -63,6 +69,13 @@ def parse(item, d):
     """
     if not d or str(d.get("code", "")) != item:
         return {"status": "not_online"}
+    # Warehouse-only products (decal 倉庫店限定商品) still carry a price in the API,
+    # but costco.co.jp shows none and doesn't sell them online (POYU, 2026-09-26: 96069).
+    # hidePriceValue means the same: the page shows no price.
+    if warehouse_only(d):
+        return {"status": "warehouse_only", "official_name": (d.get("name") or "").strip()}
+    if d.get("hidePriceValue"):
+        return {"status": "price_hidden", "official_name": (d.get("name") or "").strip()}
     price = yen(d.get("price"))
     ptype = (d.get("price") or {}).get("priceType", "")
     rng = d.get("priceRange") or {}
@@ -172,7 +185,7 @@ def main(argv):
         results.append(res)
         print(json.dumps(res, ensure_ascii=False), flush=True)
         if "--debug" in argv and d:
-            keep = {k: d.get(k) for k in ("code", "price", "priceRange", "couponDiscount", "discountMessage",
+            keep = {k: d.get(k) for k in ("code", "price", "decalData", "priceRange", "couponDiscount", "discountMessage",
                                           "stock", "purchasable", "as400Discount") if k in d}
             print("   raw:", json.dumps(keep, ensure_ascii=False)[:1500])
         errors = errors + 1 if http not in (200, 404) else 0
