@@ -33,16 +33,24 @@ const num = (v) => (v === '' ? null : Number(v));
 
 export const COMMUNITY = '社群回報';
 
-export function loadObservations() {
+function readObservations() {
   const file = path.resolve('data/observations.csv');
-  return parseCsv(fs.readFileSync(file, 'utf8'))
-    .map((r) => ({
-      ...r,
-      price: num(r.price),
-      list_price: num(r.list_price),
-      discount: num(r.discount),
-    }))
-    .filter((r) => PREVIEW || (PUBLISHABLE.has(r.review_status) && r.item_no));
+  return parseCsv(fs.readFileSync(file, 'utf8')).map((r) => ({
+    ...r,
+    price: num(r.price),
+    list_price: num(r.list_price),
+    discount: num(r.discount),
+  }));
+}
+
+export function loadObservations() {
+  return readObservations().filter((r) => PREVIEW || (PUBLISHABLE.has(r.review_status) && r.item_no));
+}
+
+// 排名頁引用的群組回報不需要商品號（只當作當下的回報，不進商品歷史）。
+export function loadReports(ids) {
+  const byId = new Map(readObservations().map((r) => [r.record_id, r]));
+  return ids.map((id) => byId.get(id)).filter((r) => r && (PREVIEW || PUBLISHABLE.has(r.review_status)));
 }
 
 // 商品以 Costco 商品號歸戶；沒有商品號的紀錄以名稱暫時歸戶。

@@ -1,7 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
-import { loadHeat, loadProducts } from '../lib/data.js';
-import { t, storeName, localePath } from '../lib/i18n.js';
+import { loadHeat, loadProducts, loadReports, yen } from '../lib/data.js';
+import { t, storeName, noteText, localePath } from '../lib/i18n.js';
 
 const { lang } = Astro.props;
 const s = t(lang);
@@ -37,6 +37,22 @@ const summary = (h) => (lang === 'ja' ? h.summary_ja : h.summary_zh);
               <div class="body">
                 <h3>{s.heatSummary}</h3>
                 <ul>{summary(h).map((line) => <li>{line}</li>)}</ul>
+                {loadReports(h.reports ?? []).length > 0 && (
+                  <>
+                    <h3>{s.heatReports}</h3>
+                    <p class="muted small">{s.heatReportsNote}</p>
+                    <ul class="reports">
+                      {loadReports(h.reports).map((o) => (
+                        <li>
+                          <span class="r-store">{storeName(lang, o.store)}</span>
+                          <span class="r-price">{yen(o.price)}{o.price_unit === '100g' && s.per100g}</span>
+                          <span class="muted small">{o.name}{o.spec && !o.name.includes(o.spec) && `・${o.spec}`}・{s.reportedOn(o.period_from, o.period_to)}</span>
+                          {noteText(lang, o) && <span class="muted small">{noteText(lang, o)}</span>}
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
                 <p class="muted small">{s.heatStores}：{h.stores.map((st) => storeName(lang, st)).join(s.storeJoin)}</p>
                 {hasPrices(h.query) && <p><a href={`${localePath(lang)}?q=${encodeURIComponent(h.query)}`}>{s.heatSeePrices} →</a></p>}
               </div>
@@ -65,5 +81,10 @@ const summary = (h) => (lang === 'ja' ? h.summary_ja : h.summary_zh);
     .body h3 { font-size: .95rem; margin: 12px 0 4px; }
     .body ul { margin: 0 0 8px; padding-left: 1.2em; display: grid; gap: 4px; }
     .body p { margin: 4px 0; }
+    .body ul.reports { list-style: none; padding: 0; gap: 6px; }
+    .reports li { display: grid; grid-template-columns: 1fr auto; gap: 0 12px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; }
+    .reports li > .muted { grid-column: 1 / -1; }
+    .r-store { font-weight: 600; }
+    .r-price { font-weight: 700; font-variant-numeric: tabular-nums; }
   </style>
 </Base>
