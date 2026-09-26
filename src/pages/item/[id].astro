@@ -15,7 +15,7 @@ const obs = [...p.observations].sort((a, b) => a.store.localeCompare(b.store, 'j
   <p class="muted">{p.item_no ? `Costco 商品號 ${p.item_no}` : 'Costco 商品號待補'}</p>
 
   <h2>價格紀錄</h2>
-  <p class="muted small">紀錄太少時不畫價格曲線；每筆標示的是「該期間曾觀測到」的價格，不代表整段期間每天都是這個價。</p>
+  <p class="muted small">紀錄太少時不畫價格曲線；每筆標示的是「該期間曾觀測到」的價格，不代表整段期間每天都是這個價。標示「待確認」的紀錄還有細節未核實，請參考備註。</p>
   <ul class="obs">
     {obs.map((o) => (
       <li>
@@ -35,6 +35,12 @@ const obs = [...p.observations].sort((a, b) => a.store.localeCompare(b.store, 'j
           {o.promo_end && <><dt>優惠至</dt><dd>{o.promo_end}</dd></>}
           {o.note && <><dt>備註</dt><dd>{o.note}</dd></>}
         </dl>
+        {o.evidence_image && (
+          <details class="evidence">
+            <summary>查看官網截圖</summary>
+            <img src={`${base}${o.evidence_image}`} alt={`${o.name} 官網價格截圖`} loading="lazy" width="800" />
+          </details>
+        )}
       </li>
     ))}
   </ul>
@@ -54,5 +60,8 @@ const obs = [...p.observations].sort((a, b) => a.store.localeCompare(b.store, 'j
     dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; margin: 0; font-size: .88rem; }
     dt { color: var(--muted); }
     dd { margin: 0; }
+    .evidence { margin-top: 8px; font-size: .88rem; }
+    .evidence summary { cursor: pointer; color: var(--accent); }
+    .evidence img { display: block; max-width: 100%; height: auto; margin-top: 8px; border: 1px solid var(--line); border-radius: 8px; }
   </style>
 </Base>

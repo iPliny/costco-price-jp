@@ -1,9 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-// 公開站只輸出「已查核」紀錄；PREVIEW=1 時連同待查核一起輸出，供內部預覽。
+// 公開站輸出「已查核」與「待確認」（會標示）；PREVIEW=1 時連同待查核一起輸出，供內部預覽。
 export const PREVIEW = process.env.PREVIEW === '1';
-const PUBLISHABLE = new Set(['已查核']);
+const PUBLISHABLE = new Set(['已查核', '待確認']);
 
 function parseCsv(text) {
   const rows = [];
