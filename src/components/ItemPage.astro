@@ -6,6 +6,11 @@ import { t, storeName, sourceName, statusName, noteText, localePath } from '../l
 const { p, lang } = Astro.props;
 const s = t(lang);
 const base = import.meta.env.BASE_URL;
+// 價格錯誤回報：開 POYU 的 Google 表單，預填商品番号與店別（店別是下拉選單，值必須完全一致）。
+const REPORT_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfUbfKas65NDogV8cVmT2TewMTorUvHOdCtEz2pL_fY3UK7SA/viewform';
+const FORM_STORES = ['熊本御船', '座間', '新三郷', '川崎', '浜松'];
+const formStore = (st) => (st === '線上商店' ? 'オンライン' : FORM_STORES.find((x) => st.startsWith(x)) ?? 'その他');
+const reportUrl = (o) => `${REPORT_FORM}?${new URLSearchParams({ usp: 'pp_url', 'entry.1082419553': o.item_no, 'entry.1812944459': formStore(o.store) })}`;
 const obs = [...p.observations].sort((a, b) => storeOrder(a.store, b.store) || (b.period_to || '').localeCompare(a.period_to || ''));
 ---
 <Base lang={lang} path={`item/${p.id}/`} title={s.itemTitle(p.name)} description={s.itemDescription(p.name, p.item_no)}>
@@ -41,6 +46,7 @@ const obs = [...p.observations].sort((a, b) => storeOrder(a.store, b.store) || (
         {o.source_type === CRAWLED && o.item_no && (
           <p class="online-link"><a href={`https://www.costco.co.jp/p/${o.item_no}`} rel="noopener" target="_blank">{s.openOnline} ↗</a></p>
         )}
+        <p class="report"><a href={reportUrl(o)} rel="noopener" target="_blank">{s.reportError}</a></p>
         {o.evidence_image && (
           <details class="evidence">
             <summary>{s.showScreenshot}</summary>
@@ -67,6 +73,8 @@ const obs = [...p.observations].sort((a, b) => storeOrder(a.store, b.store) || (
     .vs.cheaper { background: var(--ok-bg); color: var(--ok); }
     .vs.pricier { background: var(--warn-bg); color: var(--warn); }
     .online-link { margin: 6px 0 0; font-size: .88rem; }
+    .report { margin: 6px 0 0; font-size: .8rem; text-align: right; }
+    .report a { color: var(--muted); }
     dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; margin: 0; font-size: .88rem; }
     dt { color: var(--muted); }
     dd { margin: 0; }

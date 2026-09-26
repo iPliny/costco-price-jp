@@ -44,6 +44,7 @@ const STRINGS = {
     sources: { 門市價牌: '店頭の価格表示', 網路截圖: '公式サイトの画面', 社群回報: 'チャットでの報告', 官網自動取得: '公式オンライン（自動取得）' },
     vsOnline: (d) => (d === 0 ? 'オンラインと同じ価格' : d < 0 ? `オンラインより${(-d).toLocaleString('ja-JP')}円安い` : `オンラインより${d.toLocaleString('ja-JP')}円高い`),
     openOnline: '公式オンラインで見る',
+    reportError: '価格の誤りを報告',
     communityNote: 'チャットでの報告は利用者の書き込みから拾った価格で、当サイトでは未確認です。',
     communityOnly: 'チャット報告のみ',
     navRanking: '今週の話題',
@@ -116,6 +117,7 @@ const STRINGS = {
     sources: { 官網自動取得: '官網（自動取得）' },
     vsOnline: (d) => (d === 0 ? '與官網同價' : d < 0 ? `比官網便宜 ${(-d).toLocaleString('ja-JP')} 円` : `比官網貴 ${d.toLocaleString('ja-JP')} 円`),
     openOnline: '到官網查看',
+    reportError: '回報價格錯誤',
     statuses: {},
   },
 };
