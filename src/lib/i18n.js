@@ -7,8 +7,9 @@ export const LANGS = {
 const STRINGS = {
   ja: {
     brand: 'コストコ価格記録',
-    siteDescription: '日本のコストコ（Costco Japan）各倉庫店で確認した価格の記録を検索できます。',
-    homeTitle: 'コストコ価格記録｜日本のコストコ各倉庫店の価格を検索',
+    siteDescription: '日本では珍しい、コストコ（Costco Japan）倉庫店の店頭価格と公式オンラインの価格を比べられるサイト。熊本御船・座間・新三郷・川崎・浜松の各倉庫店で確認した価格を、商品名や商品番号で検索できます。',
+    homeTitle: 'コストコ価格記録｜倉庫店とオンラインの価格を比較・検索',
+    lead: '日本では珍しい、コストコ倉庫店の店頭価格と公式オンラインの価格を比べられるサイトです。',
     heading: '日本のコストコ価格記録',
     summary: (n, s) => `${n}商品・${s}店舗の価格記録を掲載。商品名やコストコ商品番号で検索できます。`,
     searchPlaceholder: '商品名・商品番号で検索（例：オイコス、86171）',
@@ -63,8 +64,9 @@ const STRINGS = {
   },
   zh: {
     brand: 'Costco 價格紀錄',
-    siteDescription: '日本好市多（Costco Japan）各倉庫店價格紀錄查詢。',
-    homeTitle: 'Costco 價格紀錄｜日本好市多各店價格查詢',
+    siteDescription: '日本少見！能比對 Costco 實體倉庫店與官網價格的網站。收錄熊本御船、座間、新三郷、川崎、浜松各倉庫店實際觀測到的價格，可用商品名或 Costco 商品號查詢。',
+    homeTitle: 'Costco 價格紀錄｜比對日本好市多倉庫店與官網價格',
+    lead: '日本少見！能比對 Costco 實體倉庫店與官網價格的網站。',
     heading: '日本 Costco 價格紀錄',
     summary: (n, s) => `收錄 ${n} 項商品，來自 ${s} 個來源店別。可用商品名、Costco 商品號搜尋。`,
     searchPlaceholder: '搜尋商品名或商品號，例如 オイコス、86171',

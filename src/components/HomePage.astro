@@ -19,15 +19,18 @@ const products = loadProducts().sort(
 const STORE_ORDER = ['熊本御船倉庫店', '座間倉庫店', '新三郷倉庫店', '川崎倉庫店', '浜松倉庫店', '線上商店'];
 const storeOrder = (st) => (STORE_ORDER.includes(st) ? STORE_ORDER.indexOf(st) : STORE_ORDER.length - 1);
 const stores = [...new Set(products.flatMap((p) => p.stores))].sort((a, b) => storeOrder(a) - storeOrder(b) || a.localeCompare(b, 'ja'));
+// 每個店別按鈕後面標出有紀錄的商品數。
+const storeCount = (st) => products.filter((p) => p.stores.includes(st)).length;
 ---
 <Base lang={lang} path="" title={s.homeTitle}>
   <h1>{s.heading}</h1>
+  <p class="lead">{s.lead}</p>
   <p class="muted">{s.summary(products.length, stores.length)}</p>
 
   <input id="q" type="search" placeholder={s.searchPlaceholder} aria-label={s.searchPlaceholder} autocomplete="off" />
   <div class="chips" id="stores">
-    <button class="chip active" data-store="">{s.allStores}</button>
-    {stores.map((st) => <button class="chip" data-store={st}>{storeName(lang, st)}</button>)}
+    <button class="chip active" data-store="">{s.allStores}({products.length})</button>
+    {stores.map((st) => <button class="chip" data-store={st}>{storeName(lang, st)}({storeCount(st)})</button>)}
   </div>
 
   <ul class="list" id="list">
@@ -51,6 +54,7 @@ const stores = [...new Set(products.flatMap((p) => p.stores))].sort((a, b) => st
 
   <style>
     h1 { font-size: 1.5rem; margin: 0 0 4px; }
+    .lead { font-weight: 600; margin: 0 0 4px; }
     input[type=search] { width: 100%; font-size: 1rem; padding: 12px 14px; border-radius: 10px;
       border: 1px solid var(--line); background: var(--card); color: var(--text); margin: 12px 0; }
     .chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 12px; }
