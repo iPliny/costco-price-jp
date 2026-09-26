@@ -84,7 +84,7 @@ const abs = (l) => (Astro.site ? new URL(localePath(l, path), Astro.site).href :
     <header class="site"><div class="wrap">
       <a class="brand" href={localePath(lang)}>{s.brand}</a>
       <nav class="site-nav">
-        <a class="nav-link" href={localePath(lang, 'ranking/')}>{s.navRanking}</a>
+        {path !== 'ranking/' && <a class="nav-link" href={localePath(lang, 'ranking/')}>{s.navRanking}</a>}
         <a class="lang-switch" href={localePath(other, path)} hreflang={LANGS[other].htmlLang} lang={LANGS[other].htmlLang}>{LANGS[other].label}</a>
       </nav>
     </div></header>
