@@ -1,7 +1,7 @@
-name: Crawler probe (robots.txt check)
+name: Crawler probe (online price dry run)
 
-# One-off, read-only check run from GitHub's network: fetch costco.co.jp's
-# robots.txt and a single product page. No data is written to the site.
+# Read-only dry run from GitHub's network: fetch costco.co.jp
+# online prices for tracked item numbers. Nothing is written to main.
 on:
   push:
     branches: [crawler/probe]
@@ -14,47 +14,13 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - name: Fetch robots.txt
-        run: |
-          UA="costco-price-jp research bot (+https://ipliny.github.io/costco-price-jp/)"
-          curl -sS -A "$UA" -D robots.headers -o robots.txt -w "status %{http_code}\n" https://www.costco.co.jp/robots.txt || true
-          cat robots.headers || true
-          echo "===== robots.txt ====="
-          cat robots.txt || true
-      - name: Fetch one product page (RICO 1492255)
-        run: |
-          UA="costco-price-jp research bot (+https://ipliny.github.io/costco-price-jp/)"
-          sleep 5
-          curl -sS -A "$UA" -o product.html -w "status %{http_code}\n" https://www.costco.co.jp/c/RICO-BABY-WIPES-900CT/p/1492255 || true
-          wc -c product.html || true
-          echo "===== price-like snippets ====="
-          grep -oE '(ld\+json|"price"[^,]{0,40}|¥ ?[0-9,]{3,}|オンライン価格|割引価格は[^<]{0,60})' product.html | sort | uniq -c | head -40 || true
-          echo "===== terms links ====="
-          grep -oE 'href="[^"]*(erms|olicy|規約)[^"]*"' product.html | sort -u | head -20 || true
-      - name: Render terms pages in a browser (they are JS-rendered)
-        run: |
-          npm i --no-save playwright@1.47.2 >/dev/null 2>&1
-          npx playwright install --with-deps chromium >/dev/null 2>&1
-          cat > render.mjs <<'JS'
-          import { chromium } from 'playwright';
-          const b = await chromium.launch();
-          const p = await b.newPage({ userAgent: 'costco-price-jp research bot (+https://ipliny.github.io/costco-price-jp/)' });
-          for (const path of ['/OtherTermsAndConditions', '/cookie-policy']) {
-            await p.goto('https://www.costco.co.jp' + path, { waitUntil: 'networkidle', timeout: 60000 });
-            await p.waitForTimeout(3000);
-            const t = await p.evaluate(() => (document.querySelector('main') || document.body).innerText);
-            console.log('===== ' + path + ' =====');
-            console.log(t);
-            await p.waitForTimeout(5000);
-          }
-          await b.close();
-          JS
-          node render.mjs | tee terms.txt
+      - uses: actions/checkout@v4
+      - name: Debug price fields on three items (one with a live discount)
+        run: python3 tools/crawl_online.py --debug 1492255 84838 60986
+      - name: Dry run over every tracked item number
+        run: python3 tools/crawl_online.py
       - uses: actions/upload-artifact@v4
         with:
           name: probe
           path: |
-            robots.txt
-            robots.headers
-            product.html
-            terms.txt
+            data/online_fetch.csv
