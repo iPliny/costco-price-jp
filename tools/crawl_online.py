@@ -33,7 +33,7 @@ SOURCE = "官網自動取得"
 PUBLIC_STATUSES = {"已查核", "待確認"}
 # Stop early rather than keep hitting the site if it starts refusing us.
 MAX_CONSECUTIVE_ERRORS = 5
-FETCH_COLS = ["item_no", "name", "fetched_at", "http", "status", "price", "list_price", "discount",
+FETCH_COLS = ["item_no", "name", "official_name", "fetched_at", "http", "status", "price", "list_price", "discount",
               "promo_from", "promo_end", "variants", "stock", "url"]
 
 
@@ -56,7 +56,11 @@ def yen(p):
 
 
 def parse(item, d):
-    """Pick the price facts out of the product API response."""
+    """Pick the price facts out of the product API response.
+
+    price.value (or the range minimum) is what the site charges now, already net of any
+    couponDiscount, so the regular online price is that plus discountValue.
+    """
     if not d or str(d.get("code", "")) != item:
         return {"status": "not_online"}
     price = yen(d.get("price"))
@@ -69,9 +73,10 @@ def parse(item, d):
     stock = ((d.get("stock") or {}).get("stockLevelStatus") or "")
     return {
         "status": "ok" if price else "no_price",
-        "list_price": price or "",
+        "official_name": (d.get("name") or "").strip(),
+        "list_price": (price + discount) if price else "",
         "discount": discount or "",
-        "price": (price - discount) if price else "",
+        "price": price or "",
         "promo_from": (coupon.get("localDiscountStartDate") or "")[:10] if discount else "",
         "promo_end": (coupon.get("localDiscountEndDate") or "")[:10] if discount else "",
         "variants": "range" if ptype == "FROM" or rng.get("minPrice") else "",
@@ -105,6 +110,7 @@ def apply(fields, rows, results, today):
         if res["status"] != "ok":
             continue
         item = res["item_no"]
+        name = res.get("official_name") or res["name"]
         # The values this result would be stored as (list price only kept when discounted).
         facts = {"price": res["price"], "list_price": res["list_price"] if res["discount"] else "",
                  "discount": res["discount"], "promo_end": res["promo_end"]}
@@ -112,6 +118,7 @@ def apply(fields, rows, results, today):
         last = max(mine, key=lambda r: r["period_to"], default=None)
         same = last and all(str(last[k]) == str(v) for k, v in facts.items())
         if same:
+            last["name"] = name
             if last["period_to"] < today:
                 last["period_to"] = today
                 extended += 1
@@ -122,7 +129,7 @@ def apply(fields, rows, results, today):
         rows.append({
             **{k: "" for k in fields},
             "record_id": f"ON-{item}-{today.replace('-', '')}",
-            "store": ONLINE_STORE, "source_type": SOURCE, "item_no": item, "name": res["name"],
+            "store": ONLINE_STORE, "source_type": SOURCE, "item_no": item, "name": name,
             **facts, "price_unit": "件",
             "period_from": today, "period_to": today,
             "note": note, "note_ja": note_ja, "review_status": "已查核",
