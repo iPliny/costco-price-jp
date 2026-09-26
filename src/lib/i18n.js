@@ -20,8 +20,12 @@ const STRINGS = {
     empty: '該当する商品が見つかりません。',
     back: '← 商品一覧へ戻る',
     itemNoLabel: (no) => (no ? `コストコ商品番号 ${no}` : 'コストコ商品番号なし'),
-    itemTitle: (name) => `${name}｜コストコ価格記録`,
-    itemDescription: (name, no) => `${name}（コストコ商品番号 ${no || 'なし'}）の日本の各コストコ倉庫店での価格記録。`,
+    itemTitle: (name) => `${name}の値段｜コストコ価格記録`,
+    itemDescription: (name, no, latest, n) =>
+      (name.includes(no) ? `${name}の値段。` : `${name}（コストコ商品番号 ${no}）の値段。`) +
+      (latest ? `最新の価格は${latest.price_unit === '100g' ? '100gあたり' : ''}${latest.price.toLocaleString('ja-JP')}円（${latest.store}・${latest.period_to} に確認）。` : '') +
+      (n > 1 ? `${n}店舗の価格を比較できます。` : 'コストコ倉庫店ごとの価格の記録です。'),
+    unnamed: (no) => `コストコ商品 ${no}`,
     history: '価格の記録',
     historyNote: '記録が少ないため価格グラフは表示していません。各記録は「この期間中に確認された価格」で、期間中ずっとその価格だったことを示すものではありません。「要確認」の記録は一部の詳細が未確認です。備考をご覧ください。',
     wasPrice: '通常価格',
@@ -78,8 +82,12 @@ const STRINGS = {
     empty: '找不到符合的商品。',
     back: '← 回到商品列表',
     itemNoLabel: (no) => (no ? `Costco 商品號 ${no}` : 'Costco 商品號待補'),
-    itemTitle: (name) => `${name}｜Costco 價格紀錄`,
-    itemDescription: (name, no) => `${name}（Costco 商品號 ${no || '待補'}）在日本各 Costco 倉庫店的價格觀測紀錄。`,
+    itemTitle: (name) => `${name} 價格｜日本 Costco 價格紀錄`,
+    itemDescription: (name, no, latest, n) =>
+      (name.includes(no) ? `${name}在日本 Costco 的價格。` : `${name}（Costco 商品號 ${no}）在日本 Costco 的價格。`) +
+      (latest ? `最新價格${latest.price_unit === '100g' ? '每 100g ' : ' '}${latest.price.toLocaleString('ja-JP')} 円（${latest.store}，${latest.period_to} 觀測）。` : '') +
+      (n > 1 ? `可比較 ${n} 家店的價格。` : '日本 Costco 各倉庫店的價格觀測紀錄。'),
+    unnamed: (no) => `Costco 商品 ${no}`,
     history: '價格紀錄',
     historyNote: '紀錄太少時不畫價格曲線；每筆標示的是「該期間曾觀測到」的價格，不代表整段期間每天都是這個價。標示「待確認」的紀錄還有細節未核實，請參考備註。',
     wasPrice: '原價',
@@ -128,6 +136,7 @@ export function t(lang) {
 
 // 資料欄位（店名、來源、狀態）以中文存放，顯示時依語言轉換。
 export const storeName = (lang, s) => STRINGS[lang].stores[s] ?? s;
+export const productName = (lang, p) => p.name || STRINGS[lang].unnamed(p.item_no);
 export const sourceName = (lang, s) => STRINGS[lang].sources[s] ?? s;
 export const statusName = (lang, s) => STRINGS[lang].statuses[s] ?? s;
 export const noteText = (lang, o) => (lang === 'ja' ? o.note_ja || o.note : o.note);

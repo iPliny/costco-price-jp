@@ -1,7 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import { loadProducts, loadHeat, priceRange } from '../lib/data.js';
-import { t, storeName, localePath } from '../lib/i18n.js';
+import { t, storeName, localePath, productName } from '../lib/i18n.js';
 
 const { lang } = Astro.props;
 const s = t(lang);
@@ -39,7 +39,7 @@ const storeCount = (st) => products.filter((p) => p.stores.includes(st)).length;
       return (
         <li data-search={`${p.name} ${p.item_no} ${p.spec}`.toLowerCase()} data-stores={p.stores.join('|')}>
           <a href={localePath(lang, `item/${p.id}/`)}>
-            <span class="name">{p.name}</span>
+            <span class="name">{productName(lang, p)}</span>
             <span class="meta muted">{p.item_no ? `#${p.item_no}` : s.itemNoMissing}{p.spec && `・${p.spec}`}</span>
             <span class="row">
               <span class="price">{range}{p.communityOnly && <span class="badge pending co">{s.communityOnly}</span>}</span>
