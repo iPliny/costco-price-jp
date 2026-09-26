@@ -32,7 +32,7 @@ def ld_products(page):
         except ValueError:
             continue
         for x in d if isinstance(d, list) else [d]:
-            if isinstance(x, dict) and x.get("@type") == "Product":
+            if isinstance(x, dict) and str(x.get("@type", "")).lower() == "product":
                 out.append(x)
     return out
 
@@ -74,12 +74,25 @@ def main(argv):
         print(json.dumps(row, ensure_ascii=False), flush=True)
         if debug:
             print("  ld+json:", json.dumps(ld_products(page), ensure_ascii=False)[:1500])
-            for kw in ["ld+json", '"price"', 'class="price-original', 'class="discount', 'you-pay', 'price-after', 'notranslate', 'out-of-stock', 'ng-state']:
-                hits = [m for m in re.finditer(re.escape(kw), page) if "{" not in page[m.start() - 5:m.start()]]
-                print(f"  [{kw}] x{len(hits)}")
-                for m in hits[:3]:
-                    frag = re.sub(r'_ngcontent-[\w-]+=""', "", page[max(0, m.start() - 200):m.start() + 700])
-                    print("     ", re.sub(r"\s+", " ", frag))
+            m = re.search(r'<script id="storefront-state" type="application/json">(.*?)</script>', page, re.S)
+            if m:
+                state = json.loads(html.unescape(m.group(1)))
+                def walk(o, path=""):
+                    if isinstance(o, dict):
+                        for k, v in o.items():
+                            walk(v, f"{path}.{k}")
+                    elif isinstance(o, list):
+                        for i, v in enumerate(o[:5]):
+                            walk(v, f"{path}[{i}]")
+                    elif re.search(r"(?i)discount|coupon|price|promo|valid|stock", path):
+                        print("   state", path[-140:], "=", str(o)[:120])
+                walk(state)
+            time.sleep(DELAY)
+            st, _, api = fetch(f"https://www.costco.co.jp/rest/v2/japan/products/{item}?fields=FULL&lang=ja&curr=JPY")
+            print("   occ api", st, re.sub(r"\s+", " ", api)[:200])
+            for kw in ["discount", "coupon", "price"]:
+                for mm in list(re.finditer(kw, api, re.I))[:4]:
+                    print(f"   api[{kw}]", api[max(0, mm.start() - 60):mm.start() + 160])
     fields = ["item_no", "fetched_at", "http", "url", "sku", "name", "price", "currency", "availability"]
     with open("data/online_fetch.csv", "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")

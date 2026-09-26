@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Debug price fields on three items (one with a live discount)
-        run: python3 tools/crawl_online.py --debug 1492255 84838 73672
+        run: python3 tools/crawl_online.py --debug 84838
       - uses: actions/upload-artifact@v4
         with:
           name: probe
