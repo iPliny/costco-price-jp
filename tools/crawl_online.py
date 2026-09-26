@@ -74,9 +74,12 @@ def main(argv):
         print(json.dumps(row, ensure_ascii=False), flush=True)
         if debug:
             print("  ld+json:", json.dumps(ld_products(page), ensure_ascii=False)[:1500])
-            for kw in ["オンライン価格", "値引き", "割引価格", "discount", "Discount", "basePrice", "savings"]:
-                for m in list(re.finditer(kw, page))[:2]:
-                    print(f"  [{kw}]", re.sub(r"\s+", " ", page[max(0, m.start() - 150):m.start() + 250]))
+            for kw in ["ld+json", '"price"', 'class="price-original', 'class="discount', 'you-pay', 'price-after', 'notranslate', 'out-of-stock', 'ng-state']:
+                hits = [m for m in re.finditer(re.escape(kw), page) if "{" not in page[m.start() - 5:m.start()]]
+                print(f"  [{kw}] x{len(hits)}")
+                for m in hits[:3]:
+                    frag = re.sub(r'_ngcontent-[\w-]+=""', "", page[max(0, m.start() - 200):m.start() + 700])
+                    print("     ", re.sub(r"\s+", " ", frag))
     fields = ["item_no", "fetched_at", "http", "url", "sku", "name", "price", "currency", "availability"]
     with open("data/online_fetch.csv", "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")
