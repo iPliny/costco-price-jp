@@ -1,0 +1,15 @@
+name: probe
+on:
+  push:
+    branches: [crawler/probe-noprice]
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          for i in 96069 98725 42417 13221 88881 1492255; do
+            curl -s -A "costco-price-jp research bot (+https://ipliny.github.io/costco-price-jp/)" -H "Accept: application/json" \
+              "https://www.costco.co.jp/rest/v2/japan/products/$i?fields=FULL&lang=ja&curr=JPY" \
+              | python3 -c 'import json,sys; d=json.load(sys.stdin); print(json.dumps({k:v for k,v in d.items() if k not in ("description","summary","images","classifications","categories","reviews","productReferences","baseOptions","variantOptions","potentialPromotions","futureStocks","volumePrices")}, ensure_ascii=False)[:3000])'
+            echo; sleep 6
+          done
