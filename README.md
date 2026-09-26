@@ -27,3 +27,9 @@
 - `npm run dev`：本機開發
 
 推到 `main` 會由 GitHub Actions 自動部署到 GitHub Pages。
+
+## 流量統計
+
+`src/lib/site.js` 填入 Google Analytics 4 的評估 ID（`GA_ID`）與 Search Console 的驗證碼（`GSC_VERIFICATION`）即可啟用；
+填入 `GA_ID` 後頁尾會自動顯示使用分析工具的告知文字。預覽版不送統計。
+網站地圖在 `/costco-price-jp/sitemap.xml`，可提交到 Search Console。

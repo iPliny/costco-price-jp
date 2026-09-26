@@ -1,6 +1,7 @@
 ---
 import { PREVIEW } from '../lib/data.js';
 import { LANGS, t, localePath } from '../lib/i18n.js';
+import { GA_ID, GSC_VERIFICATION } from '../lib/site.js';
 // path：語系內的相對路徑（首頁為 ''，商品頁為 'item/<id>/'），用來產生切換連結與 hreflang。
 const { lang = 'ja', path = '', title, description = t(lang).siteDescription } = Astro.props;
 const s = t(lang);
@@ -18,6 +19,18 @@ const abs = (l) => (Astro.site ? new URL(localePath(l, path), Astro.site).href :
     <link rel="alternate" hreflang="ja" href={abs('ja')} />
     <link rel="alternate" hreflang="zh-Hant" href={abs('zh')} />
     <link rel="alternate" hreflang="x-default" href={abs('ja')} />
+    {GSC_VERIFICATION && <meta name="google-site-verification" content={GSC_VERIFICATION} />}
+    {GA_ID && !PREVIEW && (
+      <>
+        <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}></script>
+        <script is:inline define:vars={{ GA_ID }}>
+          window.dataLayer = window.dataLayer || [];
+          function gtag() { dataLayer.push(arguments); }
+          gtag('js', new Date());
+          gtag('config', GA_ID);
+        </script>
+      </>
+    )}
     {PREVIEW && <meta name="robots" content="noindex" />}
     <style is:global>
       :root {
@@ -55,6 +68,7 @@ const abs = (l) => (Astro.site ? new URL(localePath(l, path), Astro.site).href :
       .preview-bar { background: var(--warn-bg); color: var(--warn); font-size: .85rem; padding: 6px 0; }
       main { padding: 20px 0 40px; }
       footer { color: var(--muted); font-size: .8rem; padding: 24px 0 40px; border-top: 1px solid var(--line); }
+      footer p { margin: 0 0 8px; }
       .badge { display: inline-block; font-size: .75rem; padding: 1px 8px; border-radius: 999px; white-space: nowrap; }
       .badge.ok { background: var(--ok-bg); color: var(--ok); }
       .badge.pending { background: var(--warn-bg); color: var(--warn); }
@@ -70,6 +84,9 @@ const abs = (l) => (Astro.site ? new URL(localePath(l, path), Astro.site).href :
       <a class="lang-switch" href={localePath(other, path)} hreflang={LANGS[other].htmlLang} lang={LANGS[other].htmlLang}>{LANGS[other].label}</a>
     </div></header>
     <main class="wrap"><slot /></main>
-    <footer><div class="wrap">{s.footer}</div></footer>
+    <footer><div class="wrap">
+      <p>{s.footer}</p>
+      {GA_ID && <p>{s.analyticsNotice}</p>}
+    </div></footer>
   </body>
 </html>
