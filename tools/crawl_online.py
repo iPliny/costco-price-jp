@@ -26,6 +26,7 @@ OBS = "data/observations.csv"
 FETCH = "data/online_fetch.csv"
 ONLINE_STORE = "線上商店"
 SOURCE = "官網自動取得"
+PUBLIC_STATUSES = {"已查核", "待確認"}
 
 
 def fetch_json(url):
@@ -77,10 +78,14 @@ def read_obs():
 
 
 def tracked_items(rows):
-    """Item numbers with at least one warehouse record, and our own name for each."""
+    """Item numbers with at least one public warehouse record, and our own name for each.
+
+    Rows still 待查核 are preview-only, so they don't count: otherwise an online
+    price would put a product on the public site before its store price is checked.
+    """
     names = {}
     for r in rows:
-        if r["item_no"] and r["store"] != ONLINE_STORE:
+        if r["item_no"] and r["store"] != ONLINE_STORE and r["review_status"] in PUBLIC_STATUSES:
             names.setdefault(r["item_no"], Counter())[r["name"]] += 1
     return {k: v.most_common(1)[0][0] for k, v in sorted(names.items(), key=lambda kv: int(kv[0]))}
 
