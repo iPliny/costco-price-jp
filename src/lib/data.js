@@ -43,10 +43,17 @@ export function storeOrder(a, b) {
   return i(a) - i(b) || a.localeCompare(b, 'ja');
 }
 
+// 官網同商品番号但規格不同的商品（data/online_match.csv 的 spec_diff，POYU 2026-09-27）不比價。
+const SPEC_DIFF = (() => {
+  const file = path.resolve('data/online_match.csv');
+  if (!fs.existsSync(file)) return new Set();
+  return new Set(parseCsv(fs.readFileSync(file, 'utf8')).filter((m) => m.verdict === 'spec_diff').map((m) => m.item_no));
+})();
+
 // 官網價格只是另一家店的價格。比較時用期間重疊的官網紀錄（同計價單位、取最新的一筆），
 // 回傳「這家店比官網貴多少」（負數＝比較便宜）；沒有可比的官網紀錄時回傳 null。
 export function onlineDiff(o, observations) {
-  if (o.store === ONLINE_STORE || o.price == null) return null;
+  if (o.store === ONLINE_STORE || o.price == null || SPEC_DIFF.has(o.item_no)) return null;
   const overlaps = (a, b) => a.period_from && b.period_from && a.period_from <= (b.period_to || b.period_from) && b.period_from <= (a.period_to || a.period_from);
   const online = observations
     .filter((x) => x.store === ONLINE_STORE && x.price != null && x.price_unit === o.price_unit && overlaps(o, x))
