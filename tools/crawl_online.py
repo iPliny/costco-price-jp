@@ -33,12 +33,15 @@ FETCH = "data/online_fetch.csv"
 # different_product (the number is another product online: no online row at all).
 MATCH = "data/online_match.csv"
 MATCH_COLS = ["item_no", "verdict", "store_name", "official_name", "reason", "checked"]
+# Official product names (Japanese and the English line under it on costco.co.jp), for item pages.
+NAMES = "data/product_names.csv"
+NAMES_COLS = ["item_no", "name_ja", "name_en", "checked"]
 ONLINE_STORE = "線上商店"
 SOURCE = "官網自動取得"
 PUBLIC_STATUSES = {"已查核", "待確認"}
 # Stop early rather than keep hitting the site if it starts refusing us.
 MAX_CONSECUTIVE_ERRORS = 5
-FETCH_COLS = ["item_no", "name", "official_name", "fetched_at", "http", "status", "price", "list_price", "discount",
+FETCH_COLS = ["item_no", "name", "official_name", "english_name", "fetched_at", "http", "status", "price", "list_price", "discount",
               "promo_from", "promo_end", "variants", "stock", "url"]
 
 
@@ -74,13 +77,14 @@ def parse(item, d):
     """
     if not d or str(d.get("code", "")) != item:
         return {"status": "not_online"}
+    names = {"official_name": (d.get("name") or "").strip(), "english_name": (d.get("englishName") or "").strip()}
     # Warehouse-only products (decal 倉庫店限定商品) still carry a price in the API,
     # but costco.co.jp shows none and doesn't sell them online (POYU, 2026-09-26: 96069).
     # hidePriceValue means the same: the page shows no price.
     if warehouse_only(d):
-        return {"status": "warehouse_only", "official_name": (d.get("name") or "").strip()}
+        return {"status": "warehouse_only", **names}
     if d.get("hidePriceValue"):
-        return {"status": "price_hidden", "official_name": (d.get("name") or "").strip()}
+        return {"status": "price_hidden", **names}
     price = yen(d.get("price"))
     ptype = (d.get("price") or {}).get("priceType", "")
     rng = d.get("priceRange") or {}
@@ -91,7 +95,7 @@ def parse(item, d):
     stock = ((d.get("stock") or {}).get("stockLevelStatus") or "")
     return {
         "status": "ok" if price else "no_price",
-        "official_name": (d.get("name") or "").strip(),
+        **names,
         "list_price": (price + discount) if price else "",
         "discount": discount or "",
         "price": price or "",
@@ -166,6 +170,7 @@ def apply(fields, rows, results, today):
     wrong = {k for k, m in match.items() if m["verdict"] == "different_product"}
     rows[:] = [r for r in rows if not (r["source_type"] == SOURCE and r["item_no"] in wrong)]
     flag_spec_conflicts(rows, results, match)
+    save_names(results, today)
     for r in rows:
         if r["source_type"] == SOURCE:
             mark_spec(r, match.get(r["item_no"]))
@@ -226,6 +231,26 @@ def flag_spec_conflicts(rows, results, match):
             w = csv.DictWriter(f, fieldnames=MATCH_COLS, lineterminator="\n")
             w.writeheader()
             w.writerows(sorted(match.values(), key=lambda m: int(m["item_no"])))
+
+
+def save_names(results, today):
+    """Keep the latest official names for every item the site answered for, warehouse-only ones included."""
+    try:
+        with open(NAMES, encoding="utf-8", newline="") as f:
+            names = {r["item_no"]: r for r in csv.DictReader(f)}
+    except FileNotFoundError:
+        names = {}
+    before = {k: (v["name_ja"], v["name_en"]) for k, v in names.items()}
+    for res in results:
+        ja, en = res.get("official_name") or "", res.get("english_name") or ""
+        if ja or en:
+            item = res["item_no"]
+            if before.get(item) != (ja, en) or item not in names:
+                names[item] = {"item_no": item, "name_ja": ja, "name_en": en, "checked": today}
+    with open(NAMES, "w", encoding="utf-8", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=NAMES_COLS, lineterminator="\n")
+        w.writeheader()
+        w.writerows(sorted(names.values(), key=lambda r: int(r["item_no"])))
 
 
 SPEC_NOTE = ("官網規格與店頭不同，不比價", "店頭と仕様が異なるため、比較していません")
