@@ -17,6 +17,7 @@ const obs = [...p.observations].sort((a, b) => storeOrder(a.store, b.store) || (
 <Base lang={lang} path={`item/${p.id}/`} title={s.itemTitle(name)} description={s.itemDescription(name, p.item_no, p.latest && { ...p.latest, store: storeName(lang, p.latest.store) }, p.stores.length)}>
   <p><a href={localePath(lang)}>{s.back}</a></p>
   <h1>{name}</h1>
+  {p.nameEn && <p class="name-en" lang="en">{p.nameEn}</p>}
   <p class="muted">{s.itemNoLabel(p.item_no)}</p>
 
   <h2>{s.history}</h2>
@@ -60,6 +61,7 @@ const obs = [...p.observations].sort((a, b) => storeOrder(a.store, b.store) || (
 
   <style>
     h1 { font-size: 1.35rem; margin: 0; }
+    .name-en { font-size: 0.95rem; color: var(--muted, #555); margin: 0.2rem 0 0; }
     h2 { font-size: 1.1rem; margin: 24px 0 4px; }
     .small { font-size: .85rem; }
     .obs { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 8px; }

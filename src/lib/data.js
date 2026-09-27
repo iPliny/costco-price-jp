@@ -86,7 +86,15 @@ export function productId(r) {
   return r.item_no;
 }
 
+// 官網的正式商品名稱（爬蟲寫入 data/product_names.csv）；英文名稱顯示在商品頁標題下方（POYU 2026-09-27，SEO 用）。
+function loadOfficialNames() {
+  const file = path.resolve('data/product_names.csv');
+  if (!fs.existsSync(file)) return new Map();
+  return new Map(parseCsv(fs.readFileSync(file, 'utf8')).map((r) => [r.item_no, r]));
+}
+
 export function loadProducts() {
+  const official = loadOfficialNames();
   const byId = new Map();
   for (const r of loadObservations()) {
     const id = productId(r);
@@ -98,6 +106,7 @@ export function loadProducts() {
     // 第一筆紀錄沒有商品名時，改用同商品其他紀錄的名稱（例如官網取得的正式名稱）；都沒有就留空，頁面改顯示商品番号。
     if (!p.name) p.name = p.observations.find((o) => o.name)?.name ?? '';
     if (!p.spec) p.spec = p.observations.find((o) => o.spec)?.spec ?? '';
+    p.nameEn = official.get(p.item_no)?.name_en ?? '';
     p.stores = [...new Set(p.observations.map((o) => o.store))];
     // 社群回報只在商品沒有其他來源時才用來算價格區間。
     const checked = p.observations.filter((o) => o.source_type !== COMMUNITY);
