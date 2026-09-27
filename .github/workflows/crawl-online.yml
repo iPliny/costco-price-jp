@@ -39,11 +39,11 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
             python3 tools/crawl_online.py --merge-only
-            if git diff --quiet data/observations.csv; then
+            if git diff --quiet data/observations.csv data/online_match.csv; then
               echo "No price changes."
               exit 0
             fi
-            git add data/observations.csv
+            git add data/observations.csv data/online_match.csv
             git commit -m "Online prices $(TZ=Asia/Tokyo date +%F)"
             if git push origin HEAD:main; then
               # Pushes made with the workflow token don't trigger other workflows, so start the deploy explicitly.
