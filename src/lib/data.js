@@ -107,6 +107,8 @@ export function loadProducts() {
     if (!p.name) p.name = p.observations.find((o) => o.name)?.name ?? '';
     if (!p.spec) p.spec = p.observations.find((o) => o.spec)?.spec ?? '';
     p.nameEn = official.get(p.item_no)?.name_en ?? '';
+    // 官網有這個商品頁（爬蟲拿到名稱或價格）時，標題區也放一個官網連結。
+    p.onOfficialSite = official.has(p.item_no) || p.observations.some((o) => o.source_type === CRAWLED);
     p.stores = [...new Set(p.observations.map((o) => o.store))];
     // 社群回報只在商品沒有其他來源時才用來算價格區間。
     const checked = p.observations.filter((o) => o.source_type !== COMMUNITY);

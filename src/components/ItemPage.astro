@@ -19,6 +19,9 @@ const obs = [...p.observations].sort((a, b) => storeOrder(a.store, b.store) || (
   <h1>{name}</h1>
   {p.nameEn && <p class="name-en" lang="en">{p.nameEn}</p>}
   <p class="muted">{s.itemNoLabel(p.item_no)}</p>
+  {p.onOfficialSite && (
+    <p class="online-link head-link"><a href={`https://www.costco.co.jp/p/${p.item_no}`} rel="noopener" target="_blank">{s.openOnline} ↗</a></p>
+  )}
 
   <h2>{s.history}</h2>
   <p class="muted small">{s.historyNote}</p>
