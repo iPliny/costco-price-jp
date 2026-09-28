@@ -155,3 +155,24 @@ export function loadHeat() {
   if (!fs.existsSync(file)) return [];
   return JSON.parse(fs.readFileSync(file, 'utf8')).sort((a, b) => a.to.localeCompare(b.to));
 }
+
+// 商品頁「過去の話題」：各店聊天群組裡提到這個商品的留言（POYU 2026-09-28）。
+// 只存編的動物化名與改寫過的留言，不存暱稱或原文。最新的週在上，每個商品最多顯示 5 則。
+export const DISCUSSION_LIMIT = 5;
+let discussions;
+export function discussionsFor(itemNo) {
+  if (!discussions) {
+    const file = path.resolve('data/item_discussions.json');
+    discussions = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : [];
+  }
+  let left = DISCUSSION_LIMIT;
+  return discussions
+    .filter((d) => d.item_no === itemNo)
+    .sort((a, b) => b.from.localeCompare(a.from))
+    .map((d) => {
+      const comments = d.comments.slice(0, left);
+      left -= comments.length;
+      return { ...d, comments };
+    })
+    .filter((d) => d.comments.length);
+}
