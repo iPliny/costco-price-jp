@@ -25,7 +25,7 @@ const storeCount = (st) => products.filter((p) => p.stores.includes(st)).length;
 <Base lang={lang} path="" title={s.homeTitle}>
   <h1>{s.heading}</h1>
   <p class="lead">{s.lead}</p>
-  <p class="muted">{s.summary(products.length, stores.length)}</p>
+  <p class="muted">{s.summary(products.length, stores.length, products.reduce((n, p) => n + p.observations.length, 0))}</p>
 
   <input id="q" type="search" placeholder={s.searchPlaceholder} aria-label={s.searchPlaceholder} autocomplete="off" />
   <div class="chips" id="stores">
