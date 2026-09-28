@@ -61,6 +61,20 @@ export function onlineDiff(o, observations) {
   return online ? o.price - online.price : null;
 }
 
+// 一家店只顯示一個價格（POYU 2026-09-28）：每家店（含線上商店）取最後確認的一筆。
+// 折扣已在確認期間內結束的紀錄，以折扣結束日當作它的日期；同一天時查核程度高、較晚加入的優先。
+const STATUS_RANK = { 已查核: 3, 待確認: 2, 待查核: 1 };
+const effectiveDate = (o) => (o.discount && o.promo_end && o.promo_end < (o.period_to || '') ? o.promo_end : o.period_to || '');
+export function latestPerStore(observations) {
+  const best = new Map();
+  observations.forEach((o, i) => {
+    const cur = best.get(o.store);
+    const key = [effectiveDate(o), STATUS_RANK[o.review_status] ?? 0, i];
+    if (!cur || key[0] > cur.key[0] || (key[0] === cur.key[0] && (key[1] > cur.key[1] || (key[1] === cur.key[1] && key[2] > cur.key[2])))) best.set(o.store, { o, key });
+  });
+  return [...best.values()].map((b) => b.o);
+}
+
 function readObservations() {
   const file = path.resolve('data/observations.csv');
   return parseCsv(fs.readFileSync(file, 'utf8')).map((r) => ({
@@ -111,8 +125,9 @@ export function loadProducts() {
     p.onOfficialSite = official.has(p.item_no) || p.observations.some((o) => o.source_type === CRAWLED);
     p.stores = [...new Set(p.observations.map((o) => o.store))];
     // 社群回報只在商品沒有其他來源時才用來算價格區間。
-    const checked = p.observations.filter((o) => o.source_type !== COMMUNITY);
-    const basis = checked.length ? checked : p.observations;
+    p.current = latestPerStore(p.observations);
+    const checked = p.current.filter((o) => o.source_type !== COMMUNITY);
+    const basis = checked.length ? checked : p.current;
     p.communityOnly = !checked.length;
     const unitPrices = basis.filter((o) => o.price_unit === '件').map((o) => o.price);
     const per100 = basis.filter((o) => o.price_unit === '100g').map((o) => o.price);

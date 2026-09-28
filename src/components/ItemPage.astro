@@ -12,7 +12,7 @@ const FORM_STORES = ['熊本御船', '座間', '新三郷', '川崎', '浜松'];
 const formStore = (st) => (st === '線上商店' ? 'オンライン' : FORM_STORES.find((x) => st.startsWith(x)) ?? 'その他');
 const reportUrl = (o) => `${REPORT_FORM}?${new URLSearchParams({ usp: 'pp_url', 'entry.1082419553': o.item_no, 'entry.1812944459': formStore(o.store) })}`;
 const name = productName(lang, p);
-const obs = [...p.observations].sort((a, b) => storeOrder(a.store, b.store) || (b.period_to || '').localeCompare(a.period_to || ''));
+const obs = [...p.current].sort((a, b) => storeOrder(a.store, b.store) || (b.period_to || '').localeCompare(a.period_to || ''));
 ---
 <Base lang={lang} path={`item/${p.id}/`} title={s.itemTitle(name)} description={s.itemDescription(name, p.item_no, p.latest && { ...p.latest, store: storeName(lang, p.latest.store) }, p.stores.length)}>
   <p><a href={localePath(lang)}>{s.back}</a></p>
