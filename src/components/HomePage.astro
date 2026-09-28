@@ -25,6 +25,7 @@ const storeCount = (st) => products.filter((p) => p.stores.includes(st)).length;
 <Base lang={lang} path="" title={s.homeTitle}>
   <h1>{s.heading}</h1>
   <p class="lead">{s.lead}</p>
+  <p class="muted small lead-note">{s.leadNote}</p>
   <p class="muted">{s.summary(products.length, stores.length, products.reduce((n, p) => n + p.observations.length, 0))}</p>
 
   <input id="q" type="search" placeholder={s.searchPlaceholder} aria-label={s.searchPlaceholder} autocomplete="off" />
@@ -55,6 +56,7 @@ const storeCount = (st) => products.filter((p) => p.stores.includes(st)).length;
   <style>
     h1 { font-size: 1.5rem; margin: 0 0 4px; }
     .lead { font-weight: 600; margin: 0 0 4px; }
+    .lead-note { margin: 0 0 8px; font-size: .75rem; }
     input[type=search] { width: 100%; font-size: 1rem; padding: 12px 14px; border-radius: 10px;
       border: 1px solid var(--line); background: var(--card); color: var(--text); margin: 12px 0; }
     .chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 12px; }
