@@ -15,7 +15,7 @@ const pageHref = (o) => (o.item_no && pageIds.has(o.item_no) ? localePath(lang, 
 function prices(h) {
   const q = h.query.toLowerCase();
   const matched = products
-    .filter((p) => `${p.name} ${p.item_no} ${p.spec}`.toLowerCase().includes(q))
+    .filter((p) => `${p.searchText} ${p.item_no} ${p.spec}`.toLowerCase().includes(q))
     .flatMap((p) => p.current.filter((o) => o.source_type !== COMMUNITY));
   const rows = [...matched, ...loadReports(h.reports ?? [])];
   const seen = new Set();

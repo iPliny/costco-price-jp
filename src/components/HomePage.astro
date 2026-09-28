@@ -8,7 +8,7 @@ const s = t(lang);
 // 排序：最新一週熱度 TOP5 相關商品在前（依名次），其餘依紀錄筆數多到少，同數再依名稱。
 const latest = loadHeat().at(-1);
 const heatRank = (p) => {
-  const text = `${p.name} ${p.item_no} ${p.spec}`.toLowerCase();
+  const text = `${p.searchText} ${p.item_no} ${p.spec}`.toLowerCase();
   const hit = latest?.items.find((h) => text.includes(h.query.toLowerCase()));
   return hit ? hit.rank : Infinity;
 };
@@ -37,10 +37,10 @@ const storeCount = (st) => products.filter((p) => p.stores.includes(st)).length;
     {products.map((p) => {
       const range = priceRange(p.minPrice, p.maxPrice) ?? priceRange(p.min100g, p.max100g, s.per100g);
       return (
-        <li data-search={`${p.name} ${p.item_no} ${p.spec}`.toLowerCase()} data-stores={p.stores.join('|')}>
+        <li data-search={`${p.searchText} ${p.item_no} ${p.spec}`.toLowerCase()} data-stores={p.stores.join('|')}>
           <a href={localePath(lang, `item/${p.id}/`)}>
             <span class="name">{productName(lang, p)}</span>
-            <span class="meta muted">{p.item_no ? `#${p.item_no}` : s.itemNoMissing}{p.spec && `・${p.spec}`}</span>
+            <span class="meta muted">{p.item_no ? `#${p.item_no}` : s.itemNoMissing}{p.spec && !p.name.includes(p.spec) && `・${p.spec}`}</span>
             <span class="row">
               <span class="price">{range}{p.communityOnly && <span class="badge pending co">{s.communityOnly}</span>}</span>
               <span class="muted small">{s.recordCount(p.observations.length)}・{p.stores.map((st) => storeName(lang, st)).join(s.storeJoin)}</span>
