@@ -43,12 +43,16 @@ export function storeOrder(a, b) {
   return i(a) - i(b) || a.localeCompare(b, 'ja');
 }
 
-// 官網同商品番号但規格不同的商品（data/online_match.csv 的 spec_diff，POYU 2026-09-27）不比價。
-const SPEC_DIFF = (() => {
+const MATCH = (() => {
   const file = path.resolve('data/online_match.csv');
-  if (!fs.existsSync(file)) return new Set();
-  return new Set(parseCsv(fs.readFileSync(file, 'utf8')).filter((m) => m.verdict === 'spec_diff').map((m) => m.item_no));
+  if (!fs.existsSync(file)) return new Map();
+  return new Map(parseCsv(fs.readFileSync(file, 'utf8')).map((m) => [m.item_no, m.verdict]));
 })();
+// 官網同商品番号但規格不同的商品（data/online_match.csv 的 spec_diff，POYU 2026-09-27）不比價。
+const SPEC_DIFF = new Set([...MATCH].filter(([, v]) => v === 'spec_diff').map(([k]) => k));
+// 商品頁標題用官網的日文正式名稱（POYU 2026-09-28，SEO：搜尋字多半是官網那種叫法）。
+// 規格不同、不同商品、或名稱還沒確認是同一商品的，繼續用店頭品名。
+const KEEP_STORE_NAME = new Set(['spec_diff', 'different_product', 'name_unconfirmed']);
 
 // 官網價格只是另一家店的價格。比較時用期間重疊的官網紀錄（同計價單位、取最新的一筆），
 // 回傳「這家店比官網貴多少」（負數＝比較便宜）；沒有可比的官網紀錄時回傳 null。
@@ -120,6 +124,10 @@ export function loadProducts() {
     // 第一筆紀錄沒有商品名時，改用同商品其他紀錄的名稱（例如官網取得的正式名稱）；都沒有就留空，頁面改顯示商品番号。
     if (!p.name) p.name = p.observations.find((o) => o.name)?.name ?? '';
     if (!p.spec) p.spec = p.observations.find((o) => o.spec)?.spec ?? '';
+    const nameJa = (official.get(p.item_no)?.name_ja ?? '').replace(/\s+/g, ' ').trim();
+    if (nameJa && !KEEP_STORE_NAME.has(MATCH.get(p.item_no))) p.name = nameJa;
+    // 搜尋框也要找得到店頭價牌上的叫法（例如「バスティッシュ」）。
+    p.searchText = [...new Set([p.name, ...p.observations.map((o) => o.name)])].join(' ');
     p.nameEn = official.get(p.item_no)?.name_en ?? '';
     // 官網有這個商品頁（爬蟲拿到名稱或價格）時，標題區也放一個官網連結。
     p.onOfficialSite = official.has(p.item_no) || p.observations.some((o) => o.source_type === CRAWLED);
