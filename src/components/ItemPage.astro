@@ -1,6 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
-import { yen, COMMUNITY, CRAWLED, storeOrder, onlineDiff, discussionsFor } from '../lib/data.js';
+import { yen, COMMUNITY, CRAWLED, storeOrder, onlineDiff, discussionsFor, loadCategories } from '../lib/data.js';
 import { t, storeName, sourceName, statusName, noteText, localePath, productName } from '../lib/i18n.js';
 
 const { p, lang } = Astro.props;
@@ -12,11 +12,19 @@ const FORM_STORES = ['熊本御船', '座間', '新三郷', '川崎', '浜松'];
 const formStore = (st) => (st === '線上商店' ? 'オンライン' : FORM_STORES.find((x) => st.startsWith(x)) ?? 'その他');
 const reportUrl = (o) => `${REPORT_FORM}?${new URLSearchParams({ usp: 'pp_url', 'entry.1082419553': o.item_no, 'entry.1812944459': formStore(o.store) })}`;
 const name = productName(lang, p);
+const categories = loadCategories();
+const category = categories.find((c) => c.id === p.category);
+const top = categories.find((c) => c.id === p.categoryTop);
 const talks = discussionsFor(p.item_no);
 const obs = [...p.current].sort((a, b) => storeOrder(a.store, b.store) || (b.period_to || '').localeCompare(a.period_to || ''));
 ---
 <Base lang={lang} path={`item/${p.id}/`} title={s.itemTitle(name)} description={s.itemDescription(name, p.item_no, p.latest && { ...p.latest, store: storeName(lang, p.latest.store) }, p.stores.length)}>
   <p><a href={localePath(lang)}>{s.back}</a></p>
+  {(category || p.popular) && <nav class="category-breadcrumbs" aria-label={s.categoryBreadcrumb}>
+    {top && <><a href={localePath(lang, `category/${top.id}/`)}>{top[lang]}</a> › </>}
+    {category && <a href={localePath(lang, `category/${category.id}/`)}>{category[lang]}</a>}
+    {p.popular && <a class="badge ok" href={localePath(lang, 'category/popular/')}>{s.popularBadge}</a>}
+  </nav>}
   <h1>{name}</h1>
   {p.nameEn && <p class="name-en" lang="en">{p.nameEn}</p>}
   <p class="muted">{s.itemNoLabel(p.item_no)}</p>
@@ -81,6 +89,8 @@ const obs = [...p.current].sort((a, b) => storeOrder(a.store, b.store) || (b.per
   )}
 
   <style>
+  .category-breadcrumbs { font-size: .85rem; margin-bottom: 8px; }
+  .category-breadcrumbs .badge { margin-left: 8px; }
     h1 { font-size: 1.35rem; margin: 0; }
     .name-en { font-size: 0.95rem; color: var(--muted, #555); margin: 0.2rem 0 0; }
     h2 { font-size: 1.1rem; margin: 24px 0 4px; }

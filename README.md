@@ -6,6 +6,10 @@
 
 ## 資料
 
+商品分類定義在 `data/categories.json`（3 個大分類、24 個小分類）；每個商品的分類、信心與判斷日期在 `data/product_categories.csv`，以 `tools/check_categories.py` 檢查。新的商品番号加入 observations.csv 時，同時在 product_categories.csv 補上分類。
+
+「高人氣商品」是可重疊的特別分類，在建置時自動計算：`data/weekly_heat.json` 依 `to` 排序的最新 4 週 TOP5 查詢字符合商品搜尋文字、商品番号或規格，或 `data/item_discussions.json` 中存在最近 4 週的該商品討論。討論以該檔最新 `from` 為基準，採 `(最新 from − 28 天, 最新 from]`；最新週與前三週納入，四週前同日不納入。首頁排序和人氣判斷共用同一個熱度比對函式。一般分類仍照常顯示高人氣商品。分類頁及按鈕的數量依正式／預覽模式中可顯示的商品計算。
+
 所有紀錄在 `data/observations.csv`，一列一筆觀測。
 
 - `review_status`：「已查核」與「待確認」都會上正式站，「待確認」會加標示並顯示備註；「待查核」只出現在預覽版。
@@ -22,6 +26,8 @@
 - 同一個原始檔（`evidence_sha256` 相同）重複上傳時不新增紀錄；不同日期重新拍到同價的商品，則新增一筆，區間用新的查價日期。
 
 ## 每次更新前的檢查
+
+- `python3 tools/check_categories.py` 沒有錯誤，新商品都有分類。
 
 - 搜尋頁與商品頁沒有任何無商品番号的商品（預覽版也是）。
 - 排名頁新的一週加在最上面，舊的週次不移除。

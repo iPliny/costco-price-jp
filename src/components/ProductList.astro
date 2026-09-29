@@ -1,0 +1,36 @@
+---
+import { priceRange } from '../lib/data.js';
+import { t, storeName, localePath, productName } from '../lib/i18n.js';
+const { products, lang } = Astro.props;
+const s = t(lang);
+---
+  <ul class="list" id="list">
+    {products.map((p) => {
+      const range = priceRange(p.minPrice, p.maxPrice) ?? priceRange(p.min100g, p.max100g, s.per100g);
+      return (
+        <li data-search={`${p.searchText} ${p.item_no} ${p.spec}`.toLowerCase()} data-stores={p.stores.join('|')} data-category={p.category} data-top={p.categoryTop} data-popular={String(p.popular)}>
+          <a href={localePath(lang, `item/${p.id}/`)}>
+            <span class="name">{productName(lang, p)}</span>
+            <span class="meta muted">{p.item_no ? `#${p.item_no}` : s.itemNoMissing}{p.spec && !p.name.includes(p.spec) && `・${p.spec}`}</span>
+            <span class="row">
+              <span class="price">{range}{p.communityOnly && <span class="badge pending co">{s.communityOnly}</span>}</span>
+              <span class="muted small">{s.recordCount(p.observations.length)}・{p.stores.map((st) => storeName(lang, st)).join(s.storeJoin)}</span>
+            </span>
+          </a>
+        </li>
+      );
+    })}
+  </ul>
+<style>
+    .list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+    .list a { display: grid; gap: 2px; padding: 12px 14px; background: var(--card); border: 1px solid var(--line);
+      border-radius: 10px; text-decoration: none; color: var(--text); }
+    .name { font-weight: 600; }
+    .meta { font-size: .85rem; }
+    .row { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; align-items: baseline; }
+    .price { font-weight: 700; font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+    .small { font-size: .8rem; }
+    .co { margin-left: 8px; font-weight: 400; vertical-align: middle; }
+  .list li[hidden] { display: none; }
+  .list a { min-width: 0; overflow-wrap: anywhere; }
+</style>

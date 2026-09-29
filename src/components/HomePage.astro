@@ -1,20 +1,15 @@
 ---
 import Base from '../layouts/Base.astro';
-import { loadProducts, loadHeat, priceRange } from '../lib/data.js';
-import { t, storeName, localePath, productName } from '../lib/i18n.js';
+import { loadProducts, loadCategories, sortProducts, inCategory } from '../lib/data.js';
+import ProductList from './ProductList.astro';
+import { t, storeName } from '../lib/i18n.js';
 
 const { lang } = Astro.props;
 const s = t(lang);
-// 排序：最新一週熱度 TOP5 相關商品在前（依名次），其餘依紀錄筆數多到少，同數再依名稱。
-const latest = loadHeat().at(-1);
-const heatRank = (p) => {
-  const text = `${p.searchText} ${p.item_no} ${p.spec}`.toLowerCase();
-  const hit = latest?.items.find((h) => text.includes(h.query.toLowerCase()));
-  return hit ? hit.rank : Infinity;
-};
-const products = loadProducts().sort(
-  (a, b) => heatRank(a) - heatRank(b) || b.observations.length - a.observations.length || a.name.localeCompare(b.name, 'ja')
-);
+const products = sortProducts(loadProducts());
+const categories = loadCategories();
+const tops = categories.filter((c) => !c.parent);
+const categoryCount = (id) => products.filter((p) => inCategory(p, id)).length;
 // 店別照固定順序，線上商店放最後（大家都查得到）。
 const STORE_ORDER = ['熊本御船倉庫店', '座間倉庫店', '新三郷倉庫店', '川崎倉庫店', '浜松倉庫店', '線上商店'];
 const storeOrder = (st) => (STORE_ORDER.includes(st) ? STORE_ORDER.indexOf(st) : STORE_ORDER.length - 1);
@@ -33,23 +28,20 @@ const storeCount = (st) => products.filter((p) => p.stores.includes(st)).length;
     {stores.map((st) => <button class="chip" data-store={st}>{storeName(lang, st)}({storeCount(st)})</button>)}
   </div>
 
-  <ul class="list" id="list">
-    {products.map((p) => {
-      const range = priceRange(p.minPrice, p.maxPrice) ?? priceRange(p.min100g, p.max100g, s.per100g);
-      return (
-        <li data-search={`${p.searchText} ${p.item_no} ${p.spec}`.toLowerCase()} data-stores={p.stores.join('|')}>
-          <a href={localePath(lang, `item/${p.id}/`)}>
-            <span class="name">{productName(lang, p)}</span>
-            <span class="meta muted">{p.item_no ? `#${p.item_no}` : s.itemNoMissing}{p.spec && !p.name.includes(p.spec) && `・${p.spec}`}</span>
-            <span class="row">
-              <span class="price">{range}{p.communityOnly && <span class="badge pending co">{s.communityOnly}</span>}</span>
-              <span class="muted small">{s.recordCount(p.observations.length)}・{p.stores.map((st) => storeName(lang, st)).join(s.storeJoin)}</span>
-            </span>
-          </a>
-        </li>
-      );
-    })}
-  </ul>
+  <div class="chips" id="categories">
+    <button class="chip active" data-cat="" aria-pressed="true">{s.allCategories}({products.length})</button>
+    {tops.map((c) => <button class="chip" data-cat={c.id} aria-pressed="false">{c[lang]}({categoryCount(c.id)})</button>)}
+  </div>
+  {tops.filter((c) => !c.special).map((top) => (
+    <div class="chips subcategories" data-parent={top.id} hidden>
+      <button class="chip" data-cat={top.id} aria-pressed="false">{s.allInCategory}({categoryCount(top.id)})</button>
+      {categories.filter((c) => c.parent === top.id && categoryCount(c.id)).map((c) => (
+        <button class="chip" data-cat={c.id} aria-pressed="false">{c[lang]}({categoryCount(c.id)})</button>
+      ))}
+    </div>
+  ))}
+
+  <ProductList products={products} lang={lang} />
   <p id="empty" class="muted" hidden>{s.empty}</p>
   <p id="claim-note" class="muted small lead-note">{s.leadNote}</p>
 
@@ -63,41 +55,62 @@ const storeCount = (st) => products.filter((p) => p.stores.includes(st)).length;
     .chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 12px; }
     .chip { flex: none; border: 1px solid var(--line); background: var(--card); color: var(--text);
       border-radius: 999px; padding: 6px 12px; font-size: .85rem; cursor: pointer; }
+    .chips[hidden] { display: none; }
+    .chips { max-width: 100%; }
     .chip.active { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); }
-    .list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
-    .list a { display: grid; gap: 2px; padding: 12px 14px; background: var(--card); border: 1px solid var(--line);
-      border-radius: 10px; text-decoration: none; color: var(--text); }
-    .name { font-weight: 600; }
-    .meta { font-size: .85rem; }
-    .row { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; align-items: baseline; }
-    .price { font-weight: 700; font-size: 1.05rem; font-variant-numeric: tabular-nums; }
-    .small { font-size: .8rem; }
-    .co { margin-left: 8px; font-weight: 400; vertical-align: middle; }
   </style>
 
   <script>
     const q = document.getElementById('q');
     const items = [...document.querySelectorAll('#list li')];
-    const chips = [...document.querySelectorAll('.chip')];
+    const stores = [...document.querySelectorAll('#stores .chip')];
+    const categories = [...document.querySelectorAll('[data-cat]')];
+    const groups = [...document.querySelectorAll('[data-parent]')];
     const empty = document.getElementById('empty');
     let store = '';
-    function apply() {
+    let category = '';
+    function apply(updateUrl = true) {
       const term = q.value.trim().toLowerCase();
+      const child = categories.find((c) => c.dataset.cat === category && c.closest('[data-parent]'));
+      const top = child?.closest('[data-parent]').dataset.parent ?? category;
+      groups.forEach((g) => { g.hidden = g.dataset.parent !== top; });
+      categories.forEach((c) => {
+        const active = c.dataset.cat === (c.closest('#categories') ? top : category);
+        c.classList.toggle('active', active);
+        c.setAttribute('aria-pressed', String(active));
+      });
       let shown = 0;
       for (const li of items) {
         const ok = (!term || li.dataset.search.includes(term)) &&
-          (!store || li.dataset.stores.split('|').includes(store));
+          (!store || li.dataset.stores.split('|').includes(store)) &&
+          (!category || (category === 'popular' ? li.dataset.popular === 'true' :
+            li.dataset.category === category || li.dataset.top === category));
         li.hidden = !ok;
         if (ok) shown++;
       }
       empty.hidden = shown > 0;
+      if (updateUrl) {
+        const url = new URL(location.href);
+        if (category) url.searchParams.set('cat', category); else url.searchParams.delete('cat');
+        if (q.value) url.searchParams.set('q', q.value); else url.searchParams.delete('q');
+        history.replaceState(null, '', url);
+      }
     }
-    q.addEventListener('input', apply);
-    const initial = new URLSearchParams(location.search).get('q');
-    if (initial) { q.value = initial; apply(); }
-    for (const c of chips) c.addEventListener('click', () => {
-      chips.forEach((x) => x.classList.toggle('active', x === c));
+    q.addEventListener('input', () => apply());
+    const initial = new URLSearchParams(location.search);
+    q.value = initial.get('q') ?? '';
+    if (categories.some((c) => c.dataset.cat === initial.get('cat'))) category = initial.get('cat');
+    apply(false);
+    for (const c of stores) c.addEventListener('click', () => {
+      stores.forEach((x) => {
+        x.classList.toggle('active', x === c);
+        x.setAttribute('aria-pressed', String(x === c));
+      });
       store = c.dataset.store;
+      apply();
+    });
+    for (const c of categories) c.addEventListener('click', () => {
+      category = c.dataset.cat;
       apply();
     });
   </script>
