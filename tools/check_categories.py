@@ -27,7 +27,9 @@ def read_json(name, root=ROOT):
 
 
 def matches_heat(product, heat):
-    # 與 data.js 的 matchesHeat 相同：子字串、小寫、不增加斷詞或正規化。
+    # 與 data.js 的 matchesHeat 相同：子字串、小寫、不增加斷詞或正規化；有 categories 時只比對這些小分類。
+    if heat.get('categories') and product.get('category') not in heat['categories']:
+        return False
     text = f"{product['searchText']} {product['item_no']} {product['spec']}".lower()
     return heat['query'].lower() in text
 
@@ -39,6 +41,7 @@ def popularity(preview=False, root=ROOT):
     for row in read_csv('observations.csv', root):
         if row['item_no'] and (preview or row['review_status'] in PUBLISHABLE):
             groups.setdefault(row['item_no'], []).append(row)
+    assigned = {r['item_no']: r['category'] for r in read_csv('product_categories.csv', root)}
     heat = sorted(read_json('weekly_heat.json', root), key=lambda w: w['to'])[-4:]
     talks = read_json('item_discussions.json', root)
     latest = max((d['from'] for d in talks), default='')
@@ -53,6 +56,7 @@ def popularity(preview=False, root=ROOT):
         if name_ja and matches.get(item_no) not in KEEP_STORE_NAME:
             name = name_ja
         product = {'item_no': item_no, 'name': name, 'spec': spec,
+                   'category': assigned.get(item_no),
                    'searchText': ' '.join(dict.fromkeys([name] + [r['name'] for r in rows]))}
         reasons = []
         if any(matches_heat(product, h) for week in heat for h in week['items']):

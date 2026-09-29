@@ -1,6 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
-import { loadHeat, loadProducts, loadReports, yen, COMMUNITY, CRAWLED } from '../lib/data.js';
+import { loadHeat, loadProducts, loadReports, matchesHeat, yen, COMMUNITY, CRAWLED } from '../lib/data.js';
 import { t, storeName, sourceName, noteText, localePath } from '../lib/i18n.js';
 
 const { lang } = Astro.props;
@@ -13,9 +13,8 @@ const products = loadProducts();
 const pageIds = new Set(products.map((p) => p.id));
 const pageHref = (o) => (o.item_no && pageIds.has(o.item_no) ? localePath(lang, `item/${o.item_no}/`) : null);
 function prices(h) {
-  const q = h.query.toLowerCase();
   const matched = products
-    .filter((p) => `${p.searchText} ${p.item_no} ${p.spec}`.toLowerCase().includes(q))
+    .filter((p) => matchesHeat(p, h))
     .flatMap((p) => p.current.filter((o) => o.source_type !== COMMUNITY));
   const rows = [...matched, ...loadReports(h.reports ?? [])];
   const seen = new Set();

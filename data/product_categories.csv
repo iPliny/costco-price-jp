@@ -1,7 +1,7 @@
 item_no,category,confidence,basis,checked
 1114,pantry,high,name,2026-09-29
 7878,dairy,high,name,2026-09-29
-10185,pantry,high,name,2026-09-29
+10185,sweets,high,name,2026-09-29
 10654,deli,high,name,2026-09-29
 11605,other,low,name,2026-09-29
 11611,pantry,low,name,2026-09-29
@@ -246,7 +246,7 @@ item_no,category,confidence,basis,checked
 82461,kitchen,low,name,2026-09-29
 82530,apparel,high,name,2026-09-29
 82671,apparel,high,name,2026-09-29
-82769,furniture,high,name,2026-09-29
+82769,apparel,low,name,2026-09-29
 82786,baby,high,name,2026-09-29
 82850,pantry,high,name,2026-09-29
 82855,apparel,high,name,2026-09-29
@@ -357,7 +357,7 @@ item_no,category,confidence,basis,checked
 89043,outdoor,high,name,2026-09-29
 89081,appliances,high,name,2026-09-29
 89082,appliances,high,name,2026-09-29
-89192,frozen,high,name,2026-09-29
+89192,snacks,high,name,2026-09-29
 89269,drinks,high,name,2026-09-29
 89331,health,low,name,2026-09-29
 89637,appliances,high,name,2026-09-29

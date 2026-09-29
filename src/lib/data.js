@@ -205,7 +205,9 @@ function loadProductCategories() {
 }
 
 // 保留首頁原來的子字串比對；排序和最近四週人氣共用同一規則。
+// 熱度項目有 categories 時只比對這些小分類的商品（例如「米」不該命中米久フランク、純米大吟醸）。
 export function matchesHeat(p, h) {
+  if (h.categories?.length && !h.categories.includes(p.category)) return false;
   return `${p.searchText} ${p.item_no} ${p.spec}`.toLowerCase().includes(h.query.toLowerCase());
 }
 
