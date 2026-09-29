@@ -1,0 +1,171 @@
+[
+  {
+    "id": "popular",
+    "parent": null,
+    "ja": "人気商品",
+    "zh": "高人氣商品",
+    "special": true
+  },
+  {
+    "id": "food",
+    "parent": null,
+    "ja": "食品・飲料",
+    "zh": "食品・飲料"
+  },
+  {
+    "id": "meat",
+    "parent": "food",
+    "ja": "肉・ハム・ソーセージ",
+    "zh": "肉類・火腿香腸"
+  },
+  {
+    "id": "seafood",
+    "parent": "food",
+    "ja": "魚介・刺身",
+    "zh": "海鮮・生魚片"
+  },
+  {
+    "id": "produce",
+    "parent": "food",
+    "ja": "野菜・果物",
+    "zh": "蔬菜・水果"
+  },
+  {
+    "id": "dairy",
+    "parent": "food",
+    "ja": "乳製品・卵",
+    "zh": "乳製品・蛋"
+  },
+  {
+    "id": "bakery",
+    "parent": "food",
+    "ja": "パン",
+    "zh": "麵包"
+  },
+  {
+    "id": "sweets",
+    "parent": "food",
+    "ja": "ケーキ・デザート",
+    "zh": "蛋糕・甜點"
+  },
+  {
+    "id": "deli",
+    "parent": "food",
+    "ja": "惣菜・デリ",
+    "zh": "熟食"
+  },
+  {
+    "id": "frozen",
+    "parent": "food",
+    "ja": "冷凍食品",
+    "zh": "冷凍食品"
+  },
+  {
+    "id": "pantry",
+    "parent": "food",
+    "ja": "米・麺・調味料・缶詰",
+    "zh": "米麵・調味料・罐頭"
+  },
+  {
+    "id": "snacks",
+    "parent": "food",
+    "ja": "お菓子・ナッツ",
+    "zh": "零食・堅果"
+  },
+  {
+    "id": "drinks",
+    "parent": "food",
+    "ja": "飲料・コーヒー・お茶",
+    "zh": "飲料・咖啡・茶"
+  },
+  {
+    "id": "alcohol",
+    "parent": "food",
+    "ja": "お酒",
+    "zh": "酒類"
+  },
+  {
+    "id": "daily",
+    "parent": null,
+    "ja": "日用品",
+    "zh": "日用品"
+  },
+  {
+    "id": "paper",
+    "parent": "daily",
+    "ja": "ティッシュ・トイレットペーパー",
+    "zh": "衛生紙・紙類"
+  },
+  {
+    "id": "cleaning",
+    "parent": "daily",
+    "ja": "洗剤・掃除・消耗品",
+    "zh": "洗劑・清潔・消耗品"
+  },
+  {
+    "id": "health",
+    "parent": "daily",
+    "ja": "ヘルス・ビューティー",
+    "zh": "保健・美妝"
+  },
+  {
+    "id": "baby",
+    "parent": "daily",
+    "ja": "ベビー・キッズ用品",
+    "zh": "嬰幼兒用品"
+  },
+  {
+    "id": "pet",
+    "parent": "daily",
+    "ja": "ペット用品",
+    "zh": "寵物用品"
+  },
+  {
+    "id": "home",
+    "parent": null,
+    "ja": "家電・生活用品",
+    "zh": "家電・生活用品"
+  },
+  {
+    "id": "appliances",
+    "parent": "home",
+    "ja": "家電・デジタル",
+    "zh": "家電・3C"
+  },
+  {
+    "id": "kitchen",
+    "parent": "home",
+    "ja": "キッチン用品・食器",
+    "zh": "廚房用品・餐具"
+  },
+  {
+    "id": "furniture",
+    "parent": "home",
+    "ja": "家具・寝具・インテリア",
+    "zh": "家具・寢具・居家"
+  },
+  {
+    "id": "outdoor",
+    "parent": "home",
+    "ja": "アウトドア・園芸・季節用品",
+    "zh": "戶外・園藝・季節用品"
+  },
+  {
+    "id": "apparel",
+    "parent": "home",
+    "ja": "衣料・バッグ",
+    "zh": "服飾・包包"
+  },
+  {
+    "id": "toys",
+    "parent": "home",
+    "ja": "おもちゃ・ホビー",
+    "zh": "玩具・嗜好"
+  },
+  {
+    "id": "other",
+    "parent": "home",
+    "ja": "その他",
+    "zh": "其他"
+  }
+]

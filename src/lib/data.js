@@ -113,6 +113,10 @@ function loadOfficialNames() {
 
 export function loadProducts() {
   const official = loadOfficialNames();
+  const categories = loadCategories();
+  const assignments = loadProductCategories();
+  const heat = loadHeat().slice(-4);
+  const discussed = recentDiscussionItems();
   const byId = new Map();
   for (const r of loadObservations()) {
     const id = productId(r);
@@ -128,6 +132,9 @@ export function loadProducts() {
     if (nameJa && !KEEP_STORE_NAME.has(MATCH.get(p.item_no))) p.name = nameJa;
     // 搜尋框也要找得到店頭價牌上的叫法（例如「バスティッシュ」）。
     p.searchText = [...new Set([p.name, ...p.observations.map((o) => o.name)])].join(' ');
+    p.category = assignments.get(p.item_no) ?? null;
+    p.categoryTop = categories.find((c) => c.id === p.category)?.parent ?? null;
+    p.popular = heat.some((week) => week.items.some((h) => matchesHeat(p, h))) || discussed.has(p.item_no);
     p.nameEn = official.get(p.item_no)?.name_en ?? '';
     // 官網有這個商品頁（爬蟲拿到名稱或價格）時，標題區也放一個官網連結。
     p.onOfficialSite = official.has(p.item_no) || p.observations.some((o) => o.source_type === CRAWLED);
@@ -183,4 +190,47 @@ export function discussionsFor(itemNo) {
       return { ...d, comments };
     })
     .filter((d) => d.comments.length);
+}
+
+// 一般分類採人工維護；特別分類不寫入商品的 category 欄位。
+export function loadCategories() {
+  return JSON.parse(fs.readFileSync(path.resolve('data/categories.json'), 'utf8'));
+}
+
+function loadProductCategories() {
+  const file = path.resolve('data/product_categories.csv');
+  if (!fs.existsSync(file)) return new Map();
+  const leaves = new Set(loadCategories().filter((c) => c.parent && !c.special).map((c) => c.id));
+  return new Map(parseCsv(fs.readFileSync(file, 'utf8')).filter((r) => leaves.has(r.category)).map((r) => [r.item_no, r.category]));
+}
+
+// 保留首頁原來的子字串比對；排序和最近四週人氣共用同一規則。
+// 熱度項目有 categories 時只比對這些小分類的商品（例如「米」不該命中米久フランク、純米大吟醸）。
+export function matchesHeat(p, h) {
+  if (h.categories?.length && !h.categories.includes(p.category)) return false;
+  return `${p.searchText} ${p.item_no} ${p.spec}`.toLowerCase().includes(h.query.toLowerCase());
+}
+
+export function sortProducts(products) {
+  const latest = loadHeat().at(-1);
+  const heatRank = (p) => latest?.items.find((h) => matchesHeat(p, h))?.rank ?? Infinity;
+  return [...products].sort((a, b) => heatRank(a) - heatRank(b) || b.observations.length - a.observations.length || a.name.localeCompare(b.name, 'ja'));
+}
+
+// 以資料最新週的 from 為基準，涵蓋該週及前三週；四週前的同日不納入。
+export function recentDiscussionItems() {
+  const file = path.resolve('data/item_discussions.json');
+  const rows = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : [];
+  const latest = rows.reduce((date, row) => row.from > date ? row.from : date, '');
+  if (!latest) return new Set();
+  const cutoff = new Date(Date.parse(`${latest}T00:00:00Z`) - 28 * 86400000).toISOString().slice(0, 10);
+  return new Set(rows.filter((r) => r.from > cutoff && r.from <= latest && r.comments?.length).map((r) => r.item_no));
+}
+
+export function inCategory(p, id) {
+  return id === 'popular' ? p.popular : p.category === id || p.categoryTop === id;
+}
+
+export function populatedCategories(products = loadProducts()) {
+  return loadCategories().filter((c) => products.some((p) => inCategory(p, c.id)));
 }

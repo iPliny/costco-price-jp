@@ -1,0 +1,33 @@
+---
+import Base from '../layouts/Base.astro';
+import ProductList from './ProductList.astro';
+import { loadProducts, loadCategories, sortProducts, inCategory } from '../lib/data.js';
+import { t, localePath } from '../lib/i18n.js';
+const { category, lang } = Astro.props;
+const s = t(lang);
+const all = loadProducts();
+const products = sortProducts(all.filter((p) => inCategory(p, category.id)));
+const categories = loadCategories();
+const parent = categories.find((c) => c.id === category.parent);
+const children = categories.filter((c) => c.parent === category.id).map((c) => ({ ...c, count: all.filter((p) => inCategory(p, c.id)).length })).filter((c) => c.count);
+---
+<Base lang={lang} path={`category/${category.id}/`} title={s.categoryTitle(category[lang])} description={s.categoryDescription(category[lang], products.length)}>
+  <nav class="breadcrumbs" aria-label={s.categoryBreadcrumb}>
+    <a href={localePath(lang)}>{s.brand}</a>
+    {parent && <> › <a href={localePath(lang, `category/${parent.id}/`)}>{parent[lang]}</a></>}
+    <span aria-current="page"> › {category[lang]}</span>
+  </nav>
+  <h1>{s.categoryHeading(category[lang], category.special)}</h1>
+  <p class="muted">{s.categoryCount(products.length)}</p>
+  {category.special && <p>{s.popularNote}</p>}
+  {children.length > 0 && <nav class="chips" aria-label={s.categoryBreadcrumb}>
+    {children.map((c) => <a class="chip" href={localePath(lang, `category/${c.id}/`)}>{c[lang]}({c.count})</a>)}
+  </nav>}
+  <ProductList products={products} lang={lang} />
+</Base>
+<style>
+  h1 { font-size: 1.5rem; margin: 12px 0 4px; overflow-wrap: anywhere; }
+  .breadcrumbs { font-size: .85rem; }
+  .chips { display: flex; gap: 8px; overflow-x: auto; max-width: 100%; padding-bottom: 6px; margin-bottom: 12px; }
+  .chip { flex: none; border: 1px solid var(--line); background: var(--card); color: var(--text); border-radius: 999px; padding: 6px 12px; font-size: .85rem; text-decoration: none; }
+</style>
