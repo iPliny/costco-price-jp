@@ -79,6 +79,35 @@ export function latestPerStore(observations) {
   return [...best.values()].map((b) => b.o);
 }
 
+// 最近觀測沿用商品頁目前各店的一筆紀錄，避免入口和商品頁顯示不同價格。
+// 日期只用觀測區間終點；補登、改名或優惠到期都不會變成新的觀測日。
+const validObservationDate = (value) => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) &&
+  Number.isFinite(Date.parse(`${value}T00:00:00Z`)) && new Date(`${value}T00:00:00Z`).toISOString().slice(0, 10) === value;
+const japanToday = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+const compareRecentObservations = (a, b) => b.period_to.localeCompare(a.period_to) ||
+  (STATUS_RANK[b.review_status] ?? 0) - (STATUS_RANK[a.review_status] ?? 0) || storeOrder(a.store, b.store) ||
+  (a.record_id || '').localeCompare(b.record_id || '', 'en', { numeric: true });
+
+export function recentProducts(products, channel, { limit = 20, asOf = japanToday(), preview = PREVIEW } = {}) {
+  if (!['store', 'online'].includes(channel) || !validObservationDate(asOf) || !Number.isInteger(limit) || limit <= 0) return [];
+  const byItem = new Map();
+  for (const product of products) {
+    if (!product.item_no) continue;
+    const observation = (product.current || []).filter((o) =>
+      o.store && (channel === 'online' ? o.store === ONLINE_STORE : o.store !== ONLINE_STORE) &&
+      (PUBLISHABLE.has(o.review_status) || (preview && o.review_status === '待查核')) &&
+      o.price != null && Number.isFinite(o.price) && o.price >= 0 && ['件', '100g'].includes(o.price_unit) &&
+      validObservationDate(o.period_from) && validObservationDate(o.period_to) &&
+      o.period_from <= o.period_to && o.period_to <= asOf
+    ).sort(compareRecentObservations)[0];
+    if (!observation) continue;
+    const current = byItem.get(product.item_no);
+    if (!current || compareRecentObservations(observation, current.observation) < 0) byItem.set(product.item_no, { product, observation });
+  }
+  return [...byItem.values()].sort((a, b) => b.observation.period_to.localeCompare(a.observation.period_to) ||
+    a.product.item_no.localeCompare(b.product.item_no, 'en', { numeric: true })).slice(0, limit);
+}
+
 function readObservations() {
   const file = path.resolve('data/observations.csv');
   return parseCsv(fs.readFileSync(file, 'utf8')).map((r) => ({
