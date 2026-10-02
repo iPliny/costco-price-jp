@@ -1,0 +1,69 @@
+---
+import Base from '../layouts/Base.astro';
+import { loadProducts, recentProducts, yen, COMMUNITY, CRAWLED } from '../lib/data.js';
+import { t, storeName, sourceName, statusName, noteText, localePath, productName } from '../lib/i18n.js';
+
+const { lang, channel = 'store' } = Astro.props;
+const s = t(lang);
+const path = channel === 'online' ? 'recent/online/' : 'recent/';
+const channelName = channel === 'online' ? s.recentOnline : s.recentStore;
+const entries = recentProducts(loadProducts(), channel);
+---
+<Base lang={lang} path={path} title={s.recentTitle(channelName)} description={s.recentDescription(channelName)}>
+  <p><a href={localePath(lang)}>{s.back}</a></p>
+  <h1>{s.recentHeading(channelName)}</h1>
+  <nav class="channels" aria-label={s.recentChannels}>
+    <a href={localePath(lang, 'recent/')} aria-current={channel === 'store' ? 'page' : undefined}>{s.recentStore}</a>
+    <a href={localePath(lang, 'recent/online/')} aria-current={channel === 'online' ? 'page' : undefined}>{s.recentOnline}</a>
+  </nav>
+  <p class="muted small">{s.recentNote}</p>
+  <p class="muted small">{s.recentDateNote}</p>
+  {entries.some(({ observation }) => observation.source_type === COMMUNITY) && <p class="muted small">{s.communityNote}</p>}
+  <p class="muted small">{s.recentCount(entries.length)}</p>
+  {entries.length === 0 && <p>{s.recentEmpty}</p>}
+  <ol class="recent-list">
+    {entries.map(({ product: p, observation: o }) => (
+      <li data-item={p.item_no} data-store={o.store} data-period-to={o.period_to}>
+        <a href={localePath(lang, `item/${p.id}/`)}>
+          <div class="top">
+            <strong>{storeName(lang, o.store)}</strong>
+            <span class={o.review_status === '已查核' ? 'badge ok' : 'badge pending'}>{statusName(lang, o.review_status)}</span>
+          </div>
+          <h2>{productName(lang, p)}</h2>
+          <p class="muted small">{s.itemNoLabel(p.item_no)}</p>
+          <p class="price">{yen(o.price)}{o.price_unit === '100g' && <span class="unit">{s.per100g}</span>}</p>
+          <dl>
+            {o.spec && <><dt>{s.spec}</dt><dd>{o.spec}</dd></>}
+            <dt>{s.observed}</dt><dd>{o.source_type === CRAWLED ? s.crawledOn(o.period_from, o.period_to) : s.period(o.period_from, o.period_to)}</dd>
+            <dt>{s.source}</dt><dd>{sourceName(lang, o.source_type)}</dd>
+            {o.promo_end && <><dt>{s.promoEnd}</dt><dd>{o.promo_end}</dd></>}
+            {noteText(lang, o) && <><dt>{s.note}</dt><dd>{noteText(lang, o)}</dd></>}
+          </dl>
+          <span class="details">{s.recentDetails}</span>
+        </a>
+      </li>
+    ))}
+  </ol>
+</Base>
+<style>
+  h1 { font-size: 1.5rem; margin: 0 0 12px; }
+  h2 { font-size: 1.05rem; margin: 8px 0 2px; }
+  .small { font-size: .85rem; }
+  .channels { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+  .channels a { border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; text-decoration: none; color: var(--text); }
+  .channels a[aria-current="page"] { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); font-weight: 600; }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .recent-list { list-style: none; padding: 0; display: grid; gap: 10px; }
+  .recent-list li { min-width: 0; }
+  .recent-list a { display: block; padding: 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--card);
+    color: var(--text); text-decoration: none; overflow-wrap: anywhere; }
+  .recent-list a:hover { border-color: var(--accent); }
+  .top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 10px; font-size: .9rem; }
+  .price { margin: 8px 0; font-size: 1.3rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .unit { font-size: .9rem; font-weight: 400; }
+  .recent-list p.small { margin: 0; }
+  dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 12px; font-size: .85rem; margin: 0; }
+  dt { color: var(--muted); }
+  dd { margin: 0; }
+  .details { display: block; margin-top: 10px; color: var(--accent); font-size: .85rem; }
+</style>
