@@ -88,7 +88,7 @@ const compareRecentObservations = (a, b) => b.period_to.localeCompare(a.period_t
   (STATUS_RANK[b.review_status] ?? 0) - (STATUS_RANK[a.review_status] ?? 0) || storeOrder(a.store, b.store) ||
   (a.record_id || '').localeCompare(b.record_id || '', 'en', { numeric: true });
 
-export function recentProducts(products, channel, { limit = 20, asOf = japanToday(), preview = PREVIEW } = {}) {
+export function recentProducts(products, channel, { limit = 20, asOf = japanToday(), preview = PREVIEW, seed } = {}) {
   if (!['store', 'online'].includes(channel) || !validObservationDate(asOf) || !Number.isInteger(limit) || limit <= 0) return [];
   const byItem = new Map();
   for (const product of products) {
@@ -104,8 +104,44 @@ export function recentProducts(products, channel, { limit = 20, asOf = japanToda
     const current = byItem.get(product.item_no);
     if (!current || compareRecentObservations(observation, current.observation) < 0) byItem.set(product.item_no, { product, observation });
   }
-  return [...byItem.values()].sort((a, b) => b.observation.period_to.localeCompare(a.observation.period_to) ||
-    a.product.item_no.localeCompare(b.product.item_no, 'en', { numeric: true })).slice(0, limit);
+  // POYU 2026-10-02：最新一批（同一個 period_to）超過上限就隨機抽；不足時從上一批隨機補，再不足往更早一批補。
+  // 亂數種子用建置日期與來源，同一天重建結果相同，每天部署時輪換。
+  const byDate = new Map();
+  for (const entry of byItem.values()) {
+    const key = entry.observation.period_to;
+    if (!byDate.has(key)) byDate.set(key, []);
+    byDate.get(key).push(entry);
+  }
+  const random = seededRandom(`${seed ?? asOf}:${channel}`);
+  const picked = [];
+  for (const date of [...byDate.keys()].sort().reverse()) {
+    if (picked.length >= limit) break;
+    const batch = byDate.get(date).sort(compareItemNo);
+    picked.push(...shuffle(batch, random).slice(0, limit - picked.length));
+  }
+  return picked.sort((a, b) => b.observation.period_to.localeCompare(a.observation.period_to) || compareItemNo(a, b));
+}
+
+const compareItemNo = (a, b) => a.product.item_no.localeCompare(b.product.item_no, 'en', { numeric: true });
+
+function seededRandom(text) {
+  let h = 2166136261;
+  for (const ch of text) h = Math.imul(h ^ ch.codePointAt(0), 16777619);
+  return () => {
+    h = (h + 0x6D2B79F5) | 0;
+    let x = Math.imul(h ^ (h >>> 15), 1 | h);
+    x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x;
+    return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function shuffle(items, random) {
+  const out = [...items];
+  for (let i = out.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(random() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
 }
 
 function readObservations() {

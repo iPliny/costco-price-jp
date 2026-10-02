@@ -205,11 +205,41 @@ test('the default cap is 20 distinct eligible products after channel filtering a
     { record_id: `zama-${index}`, store: ZAMA },
   ])).reverse();
   const products = [...invalid, ...online, ...valid];
-  const expected = Array.from({ length: 20 }, (_, index) => String(index + 1));
+  const validIds = new Set(Array.from({ length: 24 }, (_, index) => String(index + 1)));
 
-  assert.deepEqual(itemNos(recentProducts(products, 'store', options())), expected);
-  assert.deepEqual(itemNos(recentProducts(products, 'store', options({ limit: 3 }))), ['1', '2', '3']);
+  const rows = itemNos(recentProducts(products, 'store', options()));
+  assert.equal(rows.length, 20);
+  assert.equal(new Set(rows).size, 20);
+  assert.ok(rows.every((id) => validIds.has(id)));
+  assert.equal(recentProducts(products, 'store', options({ limit: 3 })).length, 3);
   assert.deepEqual(recentProducts(products, 'store', options({ limit: 0 })), []);
+});
+
+test('a newest batch larger than the cap is sampled at random, reproducibly for the same build date', () => {
+  const products = Array.from({ length: 30 }, (_, index) => product(index + 1, [{ period_to: '2026-09-30' }]));
+  const first = itemNos(recentProducts(products, 'store', options()));
+  const again = itemNos(recentProducts([...products].reverse(), 'store', options()));
+  assert.equal(first.length, 20);
+  assert.deepEqual(again, first);
+  assert.deepEqual(first, [...first].sort((a, b) => Number(a) - Number(b)));
+  const otherDays = ['a', 'b', 'c', 'd'].map((seed) => itemNos(recentProducts(products, 'store', options({ seed }))).join());
+  assert.ok(otherDays.some((list) => list !== first.join()));
+});
+
+test('a newest batch smaller than the cap is shown in full and topped up at random from the previous batch', () => {
+  const newest = Array.from({ length: 15 }, (_, index) => product(index + 1, [{ period_to: '2026-09-30' }]));
+  const previous = Array.from({ length: 10 }, (_, index) => product(index + 101, [{ period_to: '2026-09-28' }]));
+  const older = Array.from({ length: 10 }, (_, index) => product(index + 201, [{ period_to: '2026-09-20' }]));
+  const rows = recentProducts([...older, ...previous, ...newest], 'store', options());
+  const ids = itemNos(rows);
+  assert.equal(ids.length, 20);
+  assert.deepEqual(ids.slice(0, 15), Array.from({ length: 15 }, (_, index) => String(index + 1)));
+  assert.ok(ids.slice(15).every((id) => Number(id) > 100 && Number(id) <= 110));
+
+  const thin = recentProducts([...older, ...previous.slice(0, 2), ...newest], 'store', options());
+  assert.equal(thin.length, 20);
+  assert.deepEqual(itemNos(thin).slice(15, 17), ['101', '102']);
+  assert.ok(itemNos(thin).slice(17).every((id) => Number(id) > 200));
 });
 
 test('ineligible prices, units and missing item numbers are excluded while zero remains a valid price', () => {
