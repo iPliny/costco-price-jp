@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import RankingTabs from './RankingTabs.astro';
 import { loadHeat, loadProducts, loadReports, matchesHeat, yen, COMMUNITY, CRAWLED } from '../lib/data.js';
 import { t, storeName, sourceName, noteText, localePath } from '../lib/i18n.js';
 
@@ -32,6 +33,7 @@ const summary = (h) => (lang === 'ja' ? h.summary_ja : h.summary_zh);
   title={week ? s.heatPageTitle(week.from, week.to) : s.heatTitle}
   description={week ? s.heatDescription(week.items.map(name).join(s.storeJoin)) : s.heatTitle}
 >
+  <RankingTabs lang={lang} current="weekly" />
   <h1>{s.heatTitle}</h1>
   <p class="muted small">{s.heatNote}</p>
   {weeks.map((w, wi) => (

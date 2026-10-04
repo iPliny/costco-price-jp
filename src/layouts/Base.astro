@@ -3,7 +3,8 @@ import { PREVIEW } from '../lib/data.js';
 import { LANGS, t, localePath } from '../lib/i18n.js';
 import { GA_ID, GSC_VERIFICATION } from '../lib/site.js';
 // path：語系內的相對路徑（首頁為 ''，商品頁為 'item/<id>/'），用來產生切換連結與 hreflang。
-const { lang = 'ja', path = '', title, description = t(lang).siteDescription } = Astro.props;
+// canonical：同內容另有固定網址時（例如本月話題的最新一期），指向那個網址。
+const { lang = 'ja', path = '', title, description = t(lang).siteDescription, canonical } = Astro.props;
 const s = t(lang);
 const other = lang === 'ja' ? 'zh' : 'ja';
 const abs = (l) => (Astro.site ? new URL(localePath(l, path), Astro.site).href : localePath(l, path));
@@ -15,7 +16,8 @@ const abs = (l) => (Astro.site ? new URL(localePath(l, path), Astro.site).href :
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <link rel="canonical" href={abs(lang)} />
+    <link rel="canonical" href={canonical ? new URL(localePath(lang, canonical), Astro.site).href : abs(lang)} />
+    <slot name="head" />
     <link rel="alternate" hreflang="ja" href={abs('ja')} />
     <link rel="alternate" hreflang="zh-Hant" href={abs('zh')} />
     <link rel="alternate" hreflang="x-default" href={abs('ja')} />
@@ -84,7 +86,7 @@ const abs = (l) => (Astro.site ? new URL(localePath(l, path), Astro.site).href :
     <header class="site"><div class="wrap">
       <a class="brand" href={localePath(lang)}>{s.brand}</a>
       <nav class="site-nav">
-        {path !== 'ranking/' && <a class="nav-link" href={localePath(lang, 'ranking/')}>{s.navRanking}</a>}
+        {!path.startsWith('ranking/') && <a class="nav-link" href={localePath(lang, 'ranking/')}>{s.navRanking}</a>}
         <a class="lang-switch" href={localePath(other, path)} hreflang={LANGS[other].htmlLang} lang={LANGS[other].htmlLang}>{LANGS[other].label}</a>
       </nav>
     </div></header>

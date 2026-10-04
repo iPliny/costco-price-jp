@@ -1,0 +1,153 @@
+---
+import Base from '../layouts/Base.astro';
+import RankingTabs from './RankingTabs.astro';
+import { loadMonthly, loadProducts, monthlyPrices, monthlyCounts, yen } from '../lib/data.js';
+import { t, storeName, localePath } from '../lib/i18n.js';
+
+// month 省略時是分頁入口（/ranking/monthly/），顯示最新一期全文，canonical 指向該期的固定網址。
+const { lang, month } = Astro.props;
+const s = t(lang);
+const editions = loadMonthly();
+const ed = month ? editions.find((e) => e.month === month) : editions[0];
+const L = (o, key) => o[`${key}_${lang}`];
+const products = new Map(loadProducts().map((p) => [p.item_no, p]));
+const counts = monthlyCounts(ed.from, ed.to);
+const editionPath = `ranking/monthly/${ed.month}/`;
+const path = month ? editionPath : 'ranking/monthly/';
+const siteUrl = (p) => new URL(localePath(lang, p), Astro.site).href;
+const unitSuffix = (u) => (u === '100g' ? s.per100g : '');
+const range = (r) => (r.lo === r.hi ? yen(r.lo) : `${yen(r.lo)}〜${yen(r.hi)}`) + unitSuffix(r.unit);
+const shortDate = (d) => `${Number(d.slice(5, 7))}/${Number(d.slice(8, 10))}`;
+const span = (r) => (r.from === r.to ? shortDate(r.from) : `${shortDate(r.from)}〜${shortDate(r.to)}`);
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: L(ed, 'title'),
+    description: L(ed, 'description'),
+    inLanguage: lang === 'ja' ? 'ja' : 'zh-Hant',
+    datePublished: ed.published,
+    dateModified: ed.updated ?? ed.published,
+    mainEntityOfPage: siteUrl(editionPath),
+    author: { '@type': 'Organization', name: s.brand, url: siteUrl('') },
+    publisher: { '@type': 'Organization', name: s.brand, url: siteUrl('') },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { name: s.monthlyBreadcrumbHome, item: siteUrl('') },
+      { name: s.monthlyTitle, item: siteUrl('ranking/monthly/') },
+      { name: s.monthlyLabel(ed.month), item: siteUrl(editionPath) },
+    ].map((x, i) => ({ '@type': 'ListItem', position: i + 1, ...x })),
+  },
+];
+---
+<Base lang={lang} path={path} canonical={editionPath} title={`${L(ed, 'title')}｜${s.brand}`} description={L(ed, 'description')}>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <RankingTabs lang={lang} current="monthly" />
+  <nav class="crumbs muted small" aria-label="breadcrumb">
+    <a href={localePath(lang)}>{s.monthlyBreadcrumbHome}</a> › <a href={localePath(lang, 'ranking/monthly/')}>{s.monthlyTitle}</a> › <span>{s.monthlyLabel(ed.month)}</span>
+  </nav>
+  <article>
+    <p class="issue">{s.monthlyLabel(ed.month)}</p>
+    <h1>{L(ed, 'title')}</h1>
+    <p class="muted small">
+      <time datetime={ed.published}>{s.monthlyPublished(ed.published)}</time>
+      {ed.updated && ed.updated !== ed.published && <> ・<time datetime={ed.updated}>{s.monthlyUpdated(ed.updated)}</time></>}
+    </p>
+    <p>{L(ed, 'lead')}</p>
+
+    <section class="points">
+      <h2>{s.monthlyPoints}</h2>
+      <ul>{L(ed, 'points').map((x) => <li>{x}</li>)}</ul>
+    </section>
+
+    <nav class="toc" aria-label={s.monthlyToc}>
+      <p class="toc-title">{s.monthlyToc}</p>
+      <ol>
+        {ed.sections.map((sec) => <li><a href={`#${sec.id}`}>{L(sec, 'h')}</a></li>)}
+        <li><a href="#faq">{s.monthlyFaq}</a></li>
+        <li><a href="#method">{s.monthlyMethod}</a></li>
+      </ol>
+    </nav>
+
+    {ed.sections.map((sec) => (
+      <section id={sec.id}>
+        <h2>{L(sec, 'h')}</h2>
+        {L(sec, 'body').map((x) => <p>{x}</p>)}
+        {sec.items.map((no) => products.get(no)).filter(Boolean).map((p) => {
+          const rows = monthlyPrices(p, ed.from, ed.to);
+          return rows.length > 0 && (
+            <div class="price-table">
+              <p class="pt-title"><a href={localePath(lang, `item/${p.item_no}/`)}>{p.name}</a> <span class="muted small">（{p.item_no}）</span></p>
+              <table>
+                <thead><tr><th scope="col">{s.monthlyTableStore}</th><th scope="col">{s.monthlyTablePrice(ed.month)}</th><th scope="col">{s.monthlyTablePeriod}</th></tr></thead>
+                <tbody>
+                  {rows.map((r) => (
+                    <tr>
+                      <th scope="row">{storeName(lang, r.store)}</th>
+                      <td class="num">{range(r)}{r.regular != null && r.regular > r.hi && <span class="muted small">（{s.monthlyRegular(yen(r.regular))}）</span>}</td>
+                      <td class="muted small">{span(r)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p class="small"><a href={localePath(lang, `item/${p.item_no}/`)}>{s.monthlyItemLink} →</a></p>
+            </div>
+          );
+        })}
+      </section>
+    ))}
+
+    <section id="faq">
+      <h2>{s.monthlyFaq}</h2>
+      <dl class="faq">
+        {ed.faq.map((f) => (<><dt>Q. {L(f, 'q')}</dt><dd>A. {L(f, 'a')}</dd></>))}
+      </dl>
+    </section>
+
+    <section id="method">
+      <h2>{s.monthlyMethod}</h2>
+      <p class="small">{s.monthlyMethodBody(ed.from, ed.to, counts.records, counts.items)}</p>
+    </section>
+  </article>
+
+  {editions.length > 1 && (
+    <section class="back">
+      <h2>{s.monthlyBack}</h2>
+      <ul>
+        {editions.map((e) => <li><a href={localePath(lang, `ranking/monthly/${e.month}/`)} aria-current={e.month === ed.month ? 'page' : undefined}>{s.monthlyLabel(e.month)}：{L(e, 'title')}</a></li>)}
+      </ul>
+    </section>
+  )}
+  <p class="muted small">{s.monthlyNote}</p>
+
+  <style>
+    h1 { font-size: 1.45rem; line-height: 1.4; margin: 4px 0; }
+    h2 { font-size: 1.15rem; margin: 28px 0 8px; padding-left: 10px; border-left: 4px solid var(--accent); line-height: 1.4; }
+    .small { font-size: .85rem; }
+    .crumbs { margin: 0 0 8px; }
+    .crumbs a { color: var(--muted); }
+    .issue { display: inline-block; margin: 0; font-size: .8rem; font-weight: 700; color: var(--accent); background: var(--accent-bg); border-radius: 999px; padding: 2px 10px; }
+    article p { margin: 8px 0; }
+    .points { background: var(--card); border: 2px solid var(--accent); border-radius: 10px; padding: 4px 16px 8px; margin: 16px 0; }
+    .points h2 { border: 0; padding: 0; margin: 10px 0 4px; font-size: 1rem; color: var(--accent); }
+    .points ul { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; }
+    .toc { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 8px 16px; margin: 16px 0; }
+    .toc-title { font-weight: 700; margin: 4px 0; }
+    .toc ol { margin: 0 0 4px; padding-left: 1.4em; display: grid; gap: 2px; }
+    .price-table { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; margin: 12px 0; overflow-x: auto; }
+    .pt-title { font-weight: 600; margin: 4px 0 6px; }
+    table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+    th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    thead th { font-size: .8rem; color: var(--muted); font-weight: 600; }
+    tbody th { font-weight: 600; white-space: nowrap; }
+    td.num { font-variant-numeric: tabular-nums; font-weight: 700; }
+    td.num .muted { font-weight: 400; }
+    .faq dt { font-weight: 700; margin-top: 12px; }
+    .faq dd { margin: 4px 0 0; }
+    .back ul { padding-left: 1.2em; }
+  </style>
+</Base>

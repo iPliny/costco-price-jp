@@ -299,3 +299,44 @@ export function inCategory(p, id) {
 export function populatedCategories(products = loadProducts()) {
   return loadCategories().filter((c) => products.some((p) => inCategory(p, c.id)));
 }
+
+// 本月話題（POYU 2026-10-04）：每月最後一個星期日左右出刊，由 Claude 撰寫，SEO 取向。
+// 內文是改寫過的摘要（不含暱稱或原文）；價格表在建置時從當月的紀錄產生。最新一期排在最前面。
+export function loadMonthly() {
+  const file = path.resolve('data/monthly_topics.json');
+  if (!fs.existsSync(file)) return [];
+  return JSON.parse(fs.readFileSync(file, 'utf8')).sort((a, b) => b.month.localeCompare(a.month));
+}
+
+const inWindow = (o, from, to) => o.period_from && o.period_from <= to && (o.period_to || o.period_from) >= from;
+
+// 某商品在期間內各店（含線上商店）看到的價格範圍；社群回報不列入。
+export function monthlyPrices(product, from, to) {
+  const byStore = new Map();
+  for (const o of product.observations) {
+    if (o.source_type === COMMUNITY || o.price == null || !inWindow(o, from, to)) continue;
+    if (!byStore.has(o.store)) byStore.set(o.store, []);
+    byStore.get(o.store).push(o);
+  }
+  return [...byStore.entries()]
+    .sort(([a], [b]) => storeOrder(a, b))
+    .map(([store, rows]) => {
+      const prices = rows.map((o) => o.price);
+      const regular = rows.map((o) => o.list_price).filter((p) => p != null);
+      return {
+        store,
+        unit: rows[0].price_unit,
+        lo: Math.min(...prices),
+        hi: Math.max(...prices),
+        regular: regular.length ? Math.max(...regular) : null,
+        from: rows.map((o) => o.period_from).sort()[0],
+        to: rows.map((o) => o.period_to || o.period_from).sort().at(-1),
+      };
+    });
+}
+
+// 調查方法用：期間內的紀錄數與商品數（依正式／預覽模式的公開範圍）。
+export function monthlyCounts(from, to) {
+  const rows = loadObservations().filter((o) => o.source_type !== COMMUNITY && inWindow(o, from, to));
+  return { records: rows.length, items: new Set(rows.map((o) => o.item_no)).size };
+}
