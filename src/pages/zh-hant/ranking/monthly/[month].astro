@@ -1,0 +1,8 @@
+---
+import MonthlyPage from '../../../../components/MonthlyPage.astro';
+import { loadMonthly } from '../../../../lib/data.js';
+export function getStaticPaths() {
+  return loadMonthly().map((e) => ({ params: { month: e.month } }));
+}
+---
+<MonthlyPage lang="zh" month={Astro.params.month} />

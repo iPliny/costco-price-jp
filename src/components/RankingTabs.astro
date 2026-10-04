@@ -1,0 +1,16 @@
+---
+import { t, localePath } from '../lib/i18n.js';
+// 排名頁的分頁：今週の話題／今月の話題（POYU 2026-10-04）。各自有固定網址，不靠 JavaScript 切換。
+const { lang, current } = Astro.props;
+const s = t(lang);
+---
+<nav class="tabs" aria-label={s.heatTabs}>
+  <a href={localePath(lang, 'ranking/')} aria-current={current === 'weekly' ? 'page' : undefined}>{s.tabWeekly}</a>
+  <a href={localePath(lang, 'ranking/monthly/')} aria-current={current === 'monthly' ? 'page' : undefined}>{s.tabMonthly}</a>
+</nav>
+<style>
+  .tabs { display: flex; gap: 4px; margin: 0 0 16px; border-bottom: 1px solid var(--line); }
+  .tabs a { padding: 8px 14px; text-decoration: none; color: var(--muted); border-bottom: 3px solid transparent; margin-bottom: -1px; font-weight: 600; }
+  .tabs a[aria-current="page"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .tabs a:hover, .tabs a:focus-visible { color: var(--accent); }
+</style>
