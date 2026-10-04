@@ -37,7 +37,7 @@ export const ONLINE_STORE = '線上商店';
 export const CRAWLED = '官網自動取得';
 
 // 店別固定順序，線上商店放最後（大家都查得到）。
-const STORE_ORDER = ['熊本御船倉庫店', '座間倉庫店', '新三郷倉庫店', '川崎倉庫店', '浜松倉庫店', ONLINE_STORE];
+const STORE_ORDER = ['熊本御船倉庫店', '座間倉庫店', '新三郷倉庫店', '川崎倉庫店', '浜松倉庫店', '入間倉庫店', ONLINE_STORE];
 export function storeOrder(a, b) {
   const i = (st) => (STORE_ORDER.includes(st) ? STORE_ORDER.indexOf(st) : STORE_ORDER.length - 1);
   return i(a) - i(b) || a.localeCompare(b, 'ja');

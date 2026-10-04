@@ -11,7 +11,7 @@ const categories = loadCategories();
 const tops = categories.filter((c) => !c.parent);
 const categoryCount = (id) => products.filter((p) => inCategory(p, id)).length;
 // 店別照固定順序，線上商店放最後（大家都查得到）。
-const STORE_ORDER = ['熊本御船倉庫店', '座間倉庫店', '新三郷倉庫店', '川崎倉庫店', '浜松倉庫店', '線上商店'];
+const STORE_ORDER = ['熊本御船倉庫店', '座間倉庫店', '新三郷倉庫店', '川崎倉庫店', '浜松倉庫店', '入間倉庫店', '線上商店'];
 const storeOrder = (st) => (STORE_ORDER.includes(st) ? STORE_ORDER.indexOf(st) : STORE_ORDER.length - 1);
 const stores = [...new Set(products.flatMap((p) => p.stores))].sort((a, b) => storeOrder(a) - storeOrder(b) || a.localeCompare(b, 'ja'));
 // 每個店別按鈕後面標出有紀錄的商品數。

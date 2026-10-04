@@ -8,7 +8,7 @@ const s = t(lang);
 const base = import.meta.env.BASE_URL;
 // 價格錯誤回報：開 POYU 的 Google 表單，預填商品番号與店別（店別是下拉選單，值必須完全一致）。
 const REPORT_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfUbfKas65NDogV8cVmT2TewMTorUvHOdCtEz2pL_fY3UK7SA/viewform';
-const FORM_STORES = ['熊本御船', '座間', '新三郷', '川崎', '浜松'];
+const FORM_STORES = ['熊本御船', '座間', '新三郷', '川崎', '浜松', '入間'];
 const formStore = (st) => (st === '線上商店' ? 'オンライン' : FORM_STORES.find((x) => st.startsWith(x)) ?? 'その他');
 const reportUrl = (o) => `${REPORT_FORM}?${new URLSearchParams({ usp: 'pp_url', 'entry.1082419553': o.item_no, 'entry.1812944459': formStore(o.store) })}`;
 const name = productName(lang, p);
