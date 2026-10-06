@@ -15,6 +15,8 @@ const STORE_ORDER = ['熊本御船倉庫店', '座間倉庫店', '新三郷倉�
 const storeOrder = (st) => (STORE_ORDER.includes(st) ? STORE_ORDER.indexOf(st) : STORE_ORDER.length - 1);
 const stores = [...new Set(products.flatMap((p) => p.stores))].sort((a, b) => storeOrder(a) - storeOrder(b) || a.localeCompare(b, 'ja'));
 // 每個店別按鈕後面標出有紀錄的商品數。
+// 搜不到時給 Google 站內搜尋（打錯字時 Google 會幫忙修正），範圍限在目前語言的頁面。
+const siteScope = new URL(localePath(lang), Astro.site).href.replace(/^https?:\/\//, '').replace(/\/$/, '');
 const storeCount = (st) => products.filter((p) => p.stores.includes(st)).length;
 ---
 <Base lang={lang} path="" title={s.homeTitle}>
@@ -47,7 +49,7 @@ const storeCount = (st) => products.filter((p) => p.stores.includes(st)).length;
   ))}
 
   <ProductList products={products} lang={lang} />
-  <p id="empty" class="muted" hidden>{s.empty}</p>
+  <p id="empty" class="muted" hidden>{s.empty}<span id="google-fallback" hidden> <a href="#" target="_blank" rel="noopener" data-scope={siteScope}>{s.googleFallback} ↗</a></span></p>
   <p id="claim-note" class="muted small lead-note">{s.leadNote}</p>
 
   <style>
@@ -76,6 +78,8 @@ const storeCount = (st) => products.filter((p) => p.stores.includes(st)).length;
     const categories = [...document.querySelectorAll('[data-cat]')];
     const groups = [...document.querySelectorAll('[data-parent]')];
     const empty = document.getElementById('empty');
+    const fallback = document.getElementById('google-fallback');
+    const fallbackLink = fallback.querySelector('a');
     let store = '';
     let category = '';
     function apply(updateUrl = true) {
@@ -98,6 +102,9 @@ const storeCount = (st) => products.filter((p) => p.stores.includes(st)).length;
         if (ok) shown++;
       }
       empty.hidden = shown > 0;
+      fallback.hidden = !term;
+      if (term) fallbackLink.href = 'https://www.google.com/search?q=' +
+        encodeURIComponent(`site:${fallbackLink.dataset.scope} ${q.value.trim()}`);
       if (updateUrl) {
         const url = new URL(location.href);
         if (category) url.searchParams.set('cat', category); else url.searchParams.delete('cat');
