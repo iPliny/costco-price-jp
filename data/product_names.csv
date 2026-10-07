@@ -53,7 +53,7 @@ item_no,name_ja,name_en,checked
 38700,キッチンエイド アルチザン スタンドミキサー 4.8L,KitchenAid Artisan Stand Mixer 4.8L,2026-09-27
 39596,フジッコ ミネストローネスープ 200g x 10,Fujicco Minestrone Soup 200g x 10,2026-09-27
 40375,ザバス ジュニアプロテイン 840g,SAVAS Junior Protein 840g,2026-09-27
-41104,カルビー フルグラ糖質オフ 1000G,FRUIT GRANOLA LOW SUGAR 1000G,2026-10-03
+41104,カルビー フルグラ糖質オフ 1000g,CALBEE FRUIT GRANOLA LOW SUGAR 1000g,2026-10-07
 42417,北海道 オーガニック牛乳 1L x 2パック,Hokkaido Organic Milk 1L x 2P,2026-09-27
 43210,こどもハピカ はじめてセットキャラクター 電動歯ブラシ 本体 + 替ブラシ6本,HAPICA Electric Character Toothbrush Holder + Brush 6 piece,2026-10-05
 43392,ビビゴ ビビンバの素 2人前 x 4パック,bibigo Korean Mixed Rice Sauce 4 Pack,2026-09-27
@@ -127,7 +127,7 @@ item_no,name_ja,name_en,checked
 62818,プルムウォン チャプチェ 6-8人前,PULMUONE JAPCHAE 6-8 SERVINGS,2026-09-27
 63000,プーマ ソフトライド カーソン ユニセックス,PUMA Unisex Softride Carson,2026-09-27
 63070,関口醸造 お醤油屋さんのつけやきせんべい 85枚入り,Sekiguchi Rice Cracker 85 pieces,2026-09-27
-63813,CAVENDISH FLAVOUR CRISP,CAVENDISH FLAVOUR CRISP,2026-10-01
+63813,FLAVOUR CRISP FRIES 2KG,FLAVOUR CRISP FRIES,2026-10-07
 63858,ネスカフェエクセラ袋 360g,REGULAR SOLUBLE COFFEE 360g,2026-10-01
 63892,ダムラ ソフト キャンディー 2kg,DAMLA SOFT CANDY 2kg,2026-09-27
 64334,明治 アポロ 90袋 756g,Apollo Chocolate 90packs 756g,2026-09-27
@@ -200,7 +200,7 @@ item_no,name_ja,name_en,checked
 73293,ダイソン Airwrap i.d. マルチスタイラー & ドライヤー HS08KP,DYSON Airwrap i.d. Multi-Styler & Dryer HS08KP,2026-09-27
 73342,La Costena スライスハラペーニョ 1.8 kg,La Costena Sliced Jalapeno Pepper 1.8 kg,2026-09-27
 73401,"EcoFlow ポータブル電源 デルタ３ 1500 容量1,536Wh EFDELTA1500-JP-B-Cbox",EcoFlow Delta3 1500 EFDELTA1500-JP-B-Cbox,2026-09-27
-73592,青ねぎ300G,SPRING ONION 300G,2026-09-27
+73592,青ねぎ300G,GREEN ONION 300G,2026-10-07
 73689,ネスレ キットカット 11枚 x 6袋,KITKAT 11PC x 6,2026-10-01
 73817,アツギ リブタンクトップ 2枚組,Atsugi Ribbed Tank Top 2PK,2026-10-03
 73828,国産ブレンド米 10kg（パールライスのお米）,BLEND RICE 10kg,2026-10-05
@@ -235,7 +235,7 @@ item_no,name_ja,name_en,checked
 77120,ニュービーズ 衣料用洗濯洗剤 ローズ & マグノリアの香り 詰替え 2.1kg x 4パック,NEW BEADS Liquid Laundry Detergent Rose & Magnolia Scent Refill 2.1kg x 4 Packs,2026-10-03
 77218,SSB オートミールミニバイト 25g x 40袋,SSB Oatmeal Minibite 25g x 40pc,2026-10-03
 77295,ダイソン Supersonic r™ ヘアドライヤー HD17,Dyson Supersonic r™ Hair Dryer HD17,2026-09-27
-77410,インスタ360 X5 360° アクション カメラ オリジナルバンドル,INSTA360 X5 BUNDLE,2026-09-27
+77410,インスタ360 X5 360° アクション カメラ オリジナルバンドル CINSAAHAX504/576-COS,INSTA360 X5 BUNDLE CINSAAHAX504/576-COS,2026-10-07
 77413,コストコ クーラーバッグ 3 Way キルト生地 XL Size,Quilt Fabric Cooler 3 Way Bag,2026-10-03
 77430,カゴメ野菜生活シャインマスカット 195ml x 24本,KAGOME SHINE MUSCUT 195ml x 24,2026-09-27
 77578,オキシクリーン パワーリキッド クラブ パック 600ml 本体 + 900ml x 2 詰め替え,OxiClean Power Liquid Club Pack,2026-09-27
@@ -313,7 +313,7 @@ item_no,name_ja,name_en,checked
 83702,GEEK 大風量BLDCモーター ヘアドライヤー,GEEK BLDC Power Dryer,2026-09-27
 83710,ティファール エクストラ ロック 1.8L,T-fal Extra Lock Kettle 1.8L,2026-09-27
 84166,"YAMAZEN リビング 扇風機 YLR-AG305C(W),(H)","YAMAZEN LIVING FAN P33 YLR-AG305C(W),(H)",2026-09-29
-84260,明太チーズいももち,CHEESE & SPYCY POLLACK,2026-09-27
+84260,明太チーズいももち20PC,CHEESE & SPYCY POLLACK,2026-10-07
 84266,ネスプレッソ イニッシア スペシャルパック,NESPRESSO INISSIA Special pack,2026-09-27
 84328,UHA味覚糖 ご当地PREMIUMグミ 清水白桃 & 山梨ピオーネ 28g x 26 袋,UHA Mikakuto Gotochi Premium Shimizu White Peach & Yamanashi Pione 28g x 26 Bags,2026-10-03
 84469,YAMAZEN 移動式スポットクーラー 1.4/1.6kW YEC-T16 (W),YAMAZEN Spot cooler 1.4/1.6kW YEC-T16 (W),2026-09-27
@@ -383,7 +383,7 @@ item_no,name_ja,name_en,checked
 88491,ダノンビオ　ご褒美フルーツセレクション,DANONE BIO FRUIT SELECTION,2026-09-27
 88524,ハリボー ハリー・ポッターボックス 900g,HARIBO HARRY POTTER BOX,2026-09-27
 88624,マリオカート ダッシュキノコ 超特大ぬいぐるみ 60cm,Mario Kart Ultra Big Dash Mushroom 60cm,2026-10-03
-88692,レコルト 自動調理ポット トール RSY-6(CW),rècolte Auto Cooking Pot RSY-6(CW),2026-09-30
+88692,レコルト 自動調理ポット トール 750ml RSY-6(CW),rècolte Auto Cooking Pot RSY-6(CW),2026-10-07
 88718,レノア アロマジュエル HOTEL お洗濯の香り付けビーズ ホワイトムスクの香り 本体 1860ml,Aromajewel White Musk 1860ml,2026-09-27
 88726,長﨑堂 ヴァッフェル 10個,Nagasakido Waffeln 10PC,2026-09-27
 88786,ドラえもんどら焼き ペット用ベッド,Doraemon Dorayaki-shaped Pet Bed,2026-09-29
@@ -416,13 +416,15 @@ item_no,name_ja,name_en,checked
 90232,シュリンプアボカドハイローラー,SHRIMP AVOCADO HYE ROLLER,2026-09-27
 90240,きのこづくしピザ,MUSHROOM PIZZA,2026-09-30
 90252,千年屋 ふんわり しっとり すてぃっくわっふる ミルクティー16個入り,Sennenya Stick Waffle Milk tea 16 pieces,2026-09-27
+90358,コチュジャンポークプルコギ,PEPPER PASTE PORK BULGOGI,2026-10-07
+90540,パンプキンデザートサラダ,PUMPKIN DESSERT SALAD,2026-10-07
 90697,ネスレ キットカット 濃い抹茶 10枚,KitKat Matcha 10PC,2026-09-29
 90711,キャンベル クラムチャウダー 1360g,CAMPBELLS CLAM CHOWDER 1360g,2026-09-27
 90742,美酢 (ミチョ) アソートセット 800ml x 3,CJ MICHO ASSOT SET 800ml x 3,2026-10-03
 90792,シロカ ホームベーカリー 2斤タイプ CST-201(W),Siroca Home Bakery 2-Kin Type CST-201(W),2026-10-05
 91388,不二家 カントリーマアムミニ (バニラ) 50g x 10袋,Fujiya Country Ma'am Mini Vanilla Flavor 50g x 10,2026-09-27
 91389,不二家 ホームパイミニ 47g x 10袋,Fujiya Home Pie Mini 47g x 10,2026-09-27
-91461,レグザ 75インチ 4K 液晶テレビ 75M550RS TV,REGZA 75M550RS TV,2026-10-03
+91461,レグザ 75インチ 4K 液晶テレビ 75M550RS,REGZA 75M550RS TV,2026-10-07
 91462,レグザ 65インチ 4K 液晶テレビ 65M550RS,REGZA 65M550RS TV,2026-10-03
 92048,チュッパチャプス フラワーブーケ 12本,Chupa Chups Flower Bouquet 12PC,2026-09-27
 92066,Apple AirPods 5 ワイヤレス充電ケース付き,Apple / AirPods 5 with Wireless Charging Case,2026-09-30
@@ -460,9 +462,9 @@ item_no,name_ja,name_en,checked
 97976,バラエティロール寿司,VARIETY SUSHI ROLLS,2026-10-03
 98108,USA チルド ビーフ カワムキ タン VP,US BEEF PEELED TONGUE VP,2026-10-01
 98111,USA ビーフ チョイス ミスジVP,USA BEEF TOP BLADE VP,2026-10-01
-98306,USA ビーフ チョイス ミスジ ステーキ,USA BEEF TOPBLADE STEAK,2026-10-01
+98306,USA ビーフ チョイス ミスジ ステーキ,USA BEEF TOP BLADE STEAK,2026-10-07
 98410,USA ビーフ タン厚切り焼肉用,US BEEF TONGUE BBQ CUT,2026-10-01
-98411,USA ビーフ チョイス ミスジ焼肉,US BEEF TOPBLADE BBQ CUT,2026-10-01
+98411,USA ビーフ チョイス ミスジ焼肉,US BEEF TOP BLADE BBQ CUT,2026-10-07
 98725,牛挽肉 赤身85%,BEEF GROUND 85% LEAN,2026-09-27
 99559,三元豚切り落とし,CANADA PORK STIR FRY,2026-09-27
 99604,豚挽肉赤身80%,GROUND PORK 80% LEAN,2026-10-01
@@ -500,9 +502,9 @@ item_no,name_ja,name_en,checked
 561481,にんじん2KG,CARROTS,2026-09-29
 562297,【第3類医薬品】小堺製薬 白色ワセリン 500g,White Petrolatum 500g,2026-10-05
 563821,ブルックサイド ダークチョコレート アサイー ブルーベリー 907g,Brookside Dark Chocolate Acai Blueberry 907g,2026-09-27
-564513,カルビー フルグラ 1.2kg,CALBEE FRUIT GRANOLA1.2KG,2026-10-03
+564513,カルビー フルグラ 1.2kg,CALBEE FRUIT GRANOLA1.2kg,2026-10-07
 565656,パンケーキ(メープル&マーガリン) 12pc,Pancake(Maple & Margarine) 12pc,2026-10-03
-568392,カルビー じゃがりこ サラダ味 57g × 12個,Calbee Jagarico 12 pack,2026-09-27
+568392,カルビー じゃがりこ サラダ味 57g × 12個,Calbee Jagarico 57g x 12 packs,2026-10-07
 570348,サルシッチャ ガーリックソーセージ 720g,Salsiccia Aglio Premiata Sausage 720g,2026-09-27
 573545,北海道産ななつぼし 10kg,HOKKAIDO NANATSUBOSHI 10kg,2026-09-27
 574225,キシリトール ライムミント ガム 290g,XYLITOL Lime Mint Gum 290g,2026-09-27
