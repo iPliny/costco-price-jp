@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { normalize } from './search.js';
 
 // 公開站輸出「已查核」與「待確認」（會標示）；PREVIEW=1 時連同待查核一起輸出，供內部預覽。
 // 沒有 Costco 商品號的紀錄無法串連歷史，搜尋頁與商品頁（含預覽）都不顯示；
@@ -176,8 +177,47 @@ function loadOfficialNames() {
   return new Map(parseCsv(fs.readFileSync(file, 'utf8')).map((r) => [r.item_no, r]));
 }
 
+// 搜尋用的後台關鍵字（POYU 2026-10-07）：
+// data/search_aliases.csv 是單一商品的別名（item_no,alias,lang,source,checked），
+// data/search_synonyms.csv 是通用同義詞，一列一組、用 | 分隔（例如 卵|たまご|雞蛋）。
+function readCsvFile(name) {
+  const file = path.resolve('data', name);
+  return fs.existsSync(file) ? parseCsv(fs.readFileSync(file, 'utf8')) : [];
+}
+
+export function loadSearchAliases() {
+  const map = new Map();
+  for (const r of readCsvFile('search_aliases.csv')) {
+    if (!r.item_no || !r.alias) continue;
+    if (!map.has(r.item_no)) map.set(r.item_no, []);
+    map.get(r.item_no).push(r.alias);
+  }
+  return map;
+}
+
+export function loadSynonymGroups() {
+  return readCsvFile('search_synonyms.csv')
+    .map((r) => (r.terms ?? '').split('|').map((t) => t.trim()).filter(Boolean))
+    .filter((g) => g.length > 1);
+}
+
+// 商品的搜尋索引：名稱、店頭叫法、英文名、商品號、規格、分類名、別名，
+// 再把出現過的同義詞整組加進去。單字的詞（例如「米」會誤配「米国産」）不要放進同義詞表。
+// 分類名不觸發同義詞（「乳製品・卵」不代表每個乳製品都是卵）。
+export function buildSearchIndex(words, synonymGroups = [], categoryNames = []) {
+  const join = (list) => list.filter(Boolean).map(normalize).join('|');
+  const text = join(words);
+  const extra = [];
+  for (const group of synonymGroups) {
+    if (group.some((w) => text.includes(normalize(w)))) extra.push(...group);
+  }
+  return [text, join(categoryNames), join(extra)].filter(Boolean).join('|');
+}
+
 export function loadProducts() {
   const official = loadOfficialNames();
+  const aliases = loadSearchAliases();
+  const synonymGroups = loadSynonymGroups();
   const categories = loadCategories();
   const assignments = loadProductCategories();
   const heat = loadHeat().slice(-4);
@@ -201,6 +241,9 @@ export function loadProducts() {
     p.categoryTop = categories.find((c) => c.id === p.category)?.parent ?? null;
     p.popular = heat.some((week) => week.items.some((h) => matchesHeat(p, h))) || discussed.has(p.item_no);
     p.nameEn = official.get(p.item_no)?.name_en ?? '';
+    const cat = categories.find((c) => c.id === p.category);
+    p.searchIndex = buildSearchIndex([p.searchText, p.nameEn, p.item_no, p.spec, ...(aliases.get(p.item_no) ?? [])],
+      synonymGroups, [cat?.ja, cat?.zh]);
     // 官網有這個商品頁（爬蟲拿到名稱或價格）時，標題區也放一個官網連結。
     p.onOfficialSite = official.has(p.item_no) || p.observations.some((o) => o.source_type === CRAWLED);
     p.stores = [...new Set(p.observations.map((o) => o.store))];
