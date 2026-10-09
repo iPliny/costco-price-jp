@@ -48,6 +48,7 @@ const storeCount = (st) => products.filter((p) => p.stores.includes(st)).length;
     </div>
   ))}
 
+  <p id="fuzzy-note" class="muted small" hidden>{s.fuzzyNote}</p>
   <ProductList products={products} lang={lang} />
   <p id="empty" class="muted" hidden>{s.empty}<span id="google-fallback" hidden> <a href="#" target="_blank" rel="noopener" data-scope={siteScope}>{s.googleFallback} ↗</a></span></p>
   <p id="claim-note" class="muted small lead-note">{s.leadNote}</p>
@@ -72,7 +73,9 @@ const storeCount = (st) => products.filter((p) => p.stores.includes(st)).length;
   </style>
 
   <script>
+    import { searchIndex } from '../lib/search.js';
     const q = document.getElementById('q');
+    const fuzzyNote = document.getElementById('fuzzy-note');
     const items = [...document.querySelectorAll('#list li')];
     const stores = [...document.querySelectorAll('#stores .chip')];
     const categories = [...document.querySelectorAll('[data-cat]')];
@@ -83,7 +86,7 @@ const storeCount = (st) => products.filter((p) => p.stores.includes(st)).length;
     let store = '';
     let category = '';
     function apply(updateUrl = true) {
-      const term = q.value.trim().toLowerCase();
+      const term = q.value.trim();
       const child = categories.find((c) => c.dataset.cat === category && c.closest('[data-parent]'));
       const top = child?.closest('[data-parent]').dataset.parent ?? category;
       groups.forEach((g) => { g.hidden = g.dataset.parent !== top; });
@@ -92,15 +95,16 @@ const storeCount = (st) => products.filter((p) => p.stores.includes(st)).length;
         c.classList.toggle('active', active);
         c.setAttribute('aria-pressed', String(active));
       });
-      let shown = 0;
-      for (const li of items) {
-        const ok = (!term || li.dataset.search.includes(term)) &&
-          (!store || li.dataset.stores.split('|').includes(store)) &&
-          (!category || (category === 'popular' ? li.dataset.popular === 'true' :
-            li.dataset.category === category || li.dataset.top === category));
-        li.hidden = !ok;
-        if (ok) shown++;
-      }
+      // 先套店別與分類，再在剩下的商品裡搜尋；完全找不到時才放寬成近い候補。
+      const candidates = items.filter((li) =>
+        (!store || li.dataset.stores.split('|').includes(store)) &&
+        (!category || (category === 'popular' ? li.dataset.popular === 'true' :
+          li.dataset.category === category || li.dataset.top === category)));
+      const { hits, fuzzy } = searchIndex(candidates.map((li) => li.dataset.search), term);
+      const visible = new Set(candidates.filter((_, i) => hits[i]));
+      for (const li of items) li.hidden = !visible.has(li);
+      const shown = visible.size;
+      fuzzyNote.hidden = !(fuzzy && shown);
       empty.hidden = shown > 0;
       fallback.hidden = !term;
       if (term) fallbackLink.href = 'https://www.google.com/search?q=' +
