@@ -1,0 +1,11 @@
+---
+import { t } from '../lib/i18n.js';
+// compact：商品列表用的星號小按鈕；否則是商品頁標題旁有文字的按鈕。
+const { id, lang, compact = false } = Astro.props;
+const s = t(lang);
+---
+<button type="button" class:list={['fav-btn', { compact }]} data-fav={id} aria-pressed="false"
+  data-label-on={s.favRemove} data-label-off={s.favAdd} data-text-on={s.favOn} data-text-off={s.favOff}
+  aria-label={s.favAdd} title={s.favAdd}>
+  <span class="fav-star" aria-hidden="true"></span>{!compact && <span class="fav-text">{s.favOff}</span>}
+</button>

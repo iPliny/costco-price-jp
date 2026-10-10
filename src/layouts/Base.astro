@@ -69,6 +69,25 @@ const abs = (l) => (Astro.site ? new URL(localePath(l, path), Astro.site).href :
       .site-nav { display: flex; align-items: center; gap: 12px; }
       a.nav-link { font-size: .9rem; font-weight: 600; text-decoration: none; }
       a.lang-switch:hover, a.lang-switch:focus-visible { border-color: var(--accent); color: var(--accent); }
+      .site-nav { flex-wrap: wrap; justify-content: flex-end; row-gap: 4px; }
+      header.site a.brand { white-space: nowrap; }
+      @media (max-width: 420px) {
+        .site-nav { gap: 10px; }
+        a.fav-link .fav-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+        a.fav-link .fav-star { font-size: 1.1rem; }
+      }
+      a.fav-link { display: inline-flex; align-items: center; gap: 3px; }
+      .fav-count { font-size: .7rem; min-width: 1.4em; padding: 0 5px; border-radius: 999px; background: var(--accent-bg); text-align: center; }
+      .fav-star::before { content: '☆'; }
+      a.fav-link .fav-star::before { content: '★'; }
+      .fav-btn { display: inline-flex; align-items: center; gap: 4px; flex: none; cursor: pointer; font: inherit; font-size: .85rem;
+        border: 1px solid var(--line); border-radius: 999px; background: var(--card); color: var(--text); padding: 4px 12px; }
+      .fav-btn .fav-star { font-size: 1.05rem; line-height: 1; color: var(--muted); }
+      .fav-btn[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-bg); color: var(--accent); }
+      .fav-btn[aria-pressed="true"] .fav-star { color: #e0a100; }
+      .fav-btn[aria-pressed="true"] .fav-star::before { content: '★'; }
+      .fav-btn.compact { padding: 4px 8px; }
+      .fav-btn:hover, .fav-btn:focus-visible { border-color: var(--accent); }
       .preview-bar { background: var(--warn-bg); color: var(--warn); font-size: .85rem; padding: 6px 0; }
       main { padding: 20px 0 40px; }
       footer { color: var(--muted); font-size: .8rem; padding: 24px 0 40px; border-top: 1px solid var(--line); }
@@ -87,10 +106,15 @@ const abs = (l) => (Astro.site ? new URL(localePath(l, path), Astro.site).href :
       <a class="brand" href={localePath(lang)}>{s.brand}</a>
       <nav class="site-nav">
         {!path.startsWith('ranking/') && <a class="nav-link" href={localePath(lang, 'ranking/')}>{s.navRanking}</a>}
+        {!path.startsWith('favorites/') && <a class="nav-link fav-link" href={localePath(lang, 'favorites/')}><span class="fav-star" aria-hidden="true"></span><span class="fav-label">{s.navFavorites}</span><span class="fav-count" data-fav-count hidden></span></a>}
         <a class="lang-switch" href={localePath(other, path)} hreflang={LANGS[other].htmlLang} lang={LANGS[other].htmlLang}>{LANGS[other].label}</a>
       </nav>
     </div></header>
     <main class="wrap"><slot /></main>
+    <script>
+      import { initFavorites } from '../lib/favorites.js';
+      initFavorites();
+    </script>
     <footer><div class="wrap">
       <p>{s.footer}</p>
       {GA_ID && <p>{s.analyticsNotice}</p>}
