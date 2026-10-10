@@ -50,6 +50,12 @@
 
 Codex 的別名提案（prompt：Drive PM/Codex搜尋關鍵字Prompt）放在 `PM/04_待查核/<日期>_Codex搜尋關鍵字_v1/`，由 Claude 二讀後合併進 `search_aliases.csv`。規則檢查：`node --test tests/search.test.js`。
 
+### 收藏
+
+每頁右上角「今週の話題」旁有「★ お気に入り／收藏」入口，連到 `/favorites/`（繁中 `/zh-hant/favorites/`）。商品列表每張卡片右上的 ☆ 與商品頁標題下的按鈕可以加入或取消收藏；入口旁的數字是收藏件數（手機版只顯示 ★ 與數字）。
+
+網站沒有登入，收藏只存在該裝置瀏覽器的 localStorage（`costco-price-jp:favorites`，商品番号陣列，新加入的在最前面），日文與中文頁共用，不會同步到其他裝置。收藏頁在瀏覽器讀取建置時產生的 `favorites/products.json`（每個商品各店目前顯示的那一筆，和商品頁相同），只顯示收藏的商品。收藏頁加 noindex、不放進網站地圖。程式在 `src/lib/favorites.js`，規則檢查：`node --test tests/favorites.test.js`。
+
 ## 每次更新前的檢查
 
 - `python3 tools/check_categories.py` 沒有錯誤，新商品都有分類。

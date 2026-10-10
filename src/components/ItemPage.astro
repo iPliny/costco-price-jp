@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import FavButton from './FavButton.astro';
 import { yen, COMMUNITY, CRAWLED, storeOrder, onlineDiff, discussionsFor, loadCategories } from '../lib/data.js';
 import { t, storeName, sourceName, statusName, noteText, localePath, productName } from '../lib/i18n.js';
 
@@ -25,7 +26,10 @@ const obs = [...p.current].sort((a, b) => storeOrder(a.store, b.store) || (b.per
     {category && <a href={localePath(lang, `category/${category.id}/`)}>{category[lang]}</a>}
     {p.popular && <a class="badge ok" href={localePath(lang, 'category/popular/')}>{s.popularBadge}</a>}
   </nav>}
-  <h1>{name}</h1>
+  <div class="title-row">
+    <h1>{name}</h1>
+    <FavButton id={p.id} lang={lang} />
+  </div>
   {p.nameEn && <p class="name-en" lang="en">{p.nameEn}</p>}
   <p class="muted">{s.itemNoLabel(p.item_no)}</p>
   {p.onOfficialSite && (
@@ -92,6 +96,7 @@ const obs = [...p.current].sort((a, b) => storeOrder(a.store, b.store) || (b.per
   .category-breadcrumbs { font-size: .85rem; margin-bottom: 8px; }
   .category-breadcrumbs .badge { margin-left: 8px; }
     h1 { font-size: 1.35rem; margin: 0; }
+    .title-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px 12px; flex-wrap: wrap; }
     .name-en { font-size: 0.95rem; color: var(--muted, #555); margin: 0.2rem 0 0; }
     h2 { font-size: 1.1rem; margin: 24px 0 4px; }
     .small { font-size: .85rem; }

@@ -1,0 +1,108 @@
+---
+import Base from '../layouts/Base.astro';
+import FavButton from './FavButton.astro';
+import { t, localePath } from '../lib/i18n.js';
+
+const { lang } = Astro.props;
+const s = t(lang);
+---
+<Base lang={lang} path="favorites/" title={s.favTitle} description={s.favDescription}>
+  <meta slot="head" name="robots" content="noindex" />
+  <div class="fav-page">
+  <p><a href={localePath(lang)}>{s.back}</a></p>
+  <h1>{s.favHeading}</h1>
+  <p class="muted small">{s.favNote}</p>
+  <p id="fav-loading" class="muted">{s.favLoading}</p>
+  <p id="fav-empty" class="muted" hidden>{s.favEmpty}</p>
+  <p id="fav-error" class="muted" hidden>{s.favError}</p>
+  <ol id="fav-list" class="fav-list" data-src={localePath(lang, 'favorites/products.json')}></ol>
+
+  <template id="fav-card">
+    <li>
+      <div class="head">
+        <a class="name"></a>
+        <FavButton id="" lang={lang} compact />
+      </div>
+      <p class="muted small no"></p>
+      <table>
+        <tbody></tbody>
+      </table>
+      <a class="details small">{s.recentDetails}</a>
+    </li>
+  </template>
+  </div>
+
+  <script>
+    import { getFavorites, render } from '../lib/favorites.js';
+    const list = document.getElementById('fav-list');
+    const loading = document.getElementById('fav-loading');
+    const empty = document.getElementById('fav-empty');
+    const error = document.getElementById('fav-error');
+    const card = document.getElementById('fav-card');
+    let products = null;
+
+    const el = (tag, cls, text) => {
+      const e = document.createElement(tag);
+      if (cls) e.className = cls;
+      if (text != null) e.textContent = text;
+      return e;
+    };
+
+    function draw(ids = getFavorites()) {
+      if (!products) return;
+      const items = ids.map((id) => products.get(id)).filter(Boolean);
+      list.replaceChildren(...items.map((p) => {
+        const li = card.content.firstElementChild.cloneNode(true);
+        const name = li.querySelector('.name');
+        name.textContent = p.name;
+        name.href = p.url;
+        li.querySelector('.details').href = p.url;
+        li.querySelector('[data-fav]').dataset.fav = p.id;
+        li.querySelector('.no').textContent = `#${p.no}`;
+        li.querySelector('tbody').replaceChildren(...p.rows.map((r) => {
+          const tr = el('tr');
+          tr.append(el('th', null, r.store), el('td', 'price', r.price));
+          const when = el('td', 'when');
+          when.append(el('span', 'muted', r.when), ' ', el('span', r.ok ? 'badge ok' : 'badge pending', r.status));
+          tr.append(when);
+          return tr;
+        }));
+        return li;
+      }));
+      empty.hidden = items.length > 0;
+      render(ids);
+    }
+
+    fetch(list.dataset.src)
+      .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+      .then((data) => {
+        products = new Map(data.map((p) => [p.id, p]));
+        loading.hidden = true;
+        draw();
+      })
+      .catch(() => { loading.hidden = true; error.hidden = false; });
+    // 在這一頁按星號取消收藏時，卡片直接移除。
+    document.addEventListener('favorites-change', (e) => draw(e.detail));
+  </script>
+</Base>
+<style is:global>
+  .fav-page h1 { font-size: 1.5rem; margin: 0 0 8px; }
+  .fav-page .small { font-size: .85rem; }
+  .fav-list { list-style: none; padding: 0; margin: 16px 0 0; display: grid; gap: 10px; }
+  .fav-list li { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; min-width: 0; overflow-wrap: anywhere; }
+  .fav-list .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .fav-list .name { font-weight: 600; text-decoration: none; color: var(--text); }
+  .fav-list .name:hover { color: var(--accent); }
+  .fav-list .no { margin: 0 0 6px; }
+  .fav-list table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+  .fav-list th, .fav-list td { text-align: left; padding: 4px 8px 4px 0; border-top: 1px solid var(--line); vertical-align: top; }
+  .fav-list th { font-weight: 600; white-space: nowrap; }
+  .fav-list td.price { font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .fav-list td.when .badge { margin-left: 2px; }
+  .fav-list .details { display: inline-block; margin-top: 8px; }
+  @media (max-width: 480px) {
+    .fav-list tr { display: grid; grid-template-columns: auto 1fr; border-top: 1px solid var(--line); padding: 4px 0; }
+    .fav-list th, .fav-list td { border-top: 0; padding: 0 8px 0 0; }
+    .fav-list td.when { grid-column: 1 / -1; }
+  }
+</style>

@@ -1,5 +1,6 @@
 ---
 import { priceRange } from '../lib/data.js';
+import FavButton from './FavButton.astro';
 import { t, storeName, localePath, productName } from '../lib/i18n.js';
 const { products, lang } = Astro.props;
 const s = t(lang);
@@ -17,6 +18,7 @@ const s = t(lang);
               <span class="muted small">{s.recordCount(p.observations.length)}・{p.stores.map((st) => storeName(lang, st)).join(s.storeJoin)}</span>
             </span>
           </a>
+          <FavButton id={p.id} lang={lang} compact />
         </li>
       );
     })}
@@ -32,5 +34,8 @@ const s = t(lang);
     .small { font-size: .8rem; }
     .co { margin-left: 8px; font-weight: 400; vertical-align: middle; }
   .list li[hidden] { display: none; }
+  .list li { position: relative; }
+  .list a { padding-right: 52px; }
+  .list :global(.fav-btn) { position: absolute; top: 8px; right: 8px; }
   .list a { min-width: 0; overflow-wrap: anywhere; }
 </style>
