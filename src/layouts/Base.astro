@@ -116,6 +116,7 @@ const abs = (l) => (Astro.site ? new URL(localePath(l, path), Astro.site).href :
       initFavorites();
     </script>
     <footer><div class="wrap">
+      <p>{s.providedBy}<a href="https://crawlsnek.com/">CrawlSnek</a>{s.providedBySuffix ?? ''}</p>
       <p>{s.footer}</p>
       {GA_ID && <p>{s.analyticsNotice}</p>}
     </div></footer>
