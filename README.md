@@ -56,6 +56,17 @@ Codex 的別名提案（prompt：Drive PM/Codex搜尋關鍵字Prompt）放在 `P
 
 網站沒有登入，收藏只存在該裝置瀏覽器的 localStorage（`costco-price-jp:favorites`，商品番号陣列，新加入的在最前面），日文與中文頁共用，不會同步到其他裝置。收藏頁在瀏覽器讀取建置時產生的 `favorites/products.json`（每個商品各店目前顯示的那一筆，和商品頁相同），只顯示收藏的商品。收藏頁加 noindex、不放進網站地圖。程式在 `src/lib/favorites.js`，規則檢查：`node --test tests/favorites.test.js`。
 
+### 週報（中文文章）
+
+中文版有「週報」區：列表 `/zh-hant/blog/`，每篇 `/zh-hant/blog/<slug>/`（例：`weekly-4`），只有中文、日文版沒有對應頁。一篇一個檔案 `data/blog/<slug>.html`，檔名就是網址，發布後不改。檔案開頭是一段 JSON：
+
+```
+<!--POST {"title":"日本好市多週報#4：…（2026/10/17）","date":"2026-10-17","labels":["好市多","日本物價","週報","詞1","詞2"],"description":"150 字元以內的搜尋說明"}-->
+<h2>…</h2><p>…</p>
+```
+
+`labels` 剛好 5 個，含固定的「好市多」「日本物價」「週報」；`description` 是頁面的搜尋說明（150 字元以內）；改過內容可加 `"updated":"YYYY-MM-DD"`。正文只用 h2、h3、p、a、strong、small、table、ul，不放 script／style；連到本站用 `/zh-hant/...` 路徑，不用舊的 github.io 網址，原始資料只放文末資料說明。週報先推到分支看預覽，POYU 同意才合併上線。檢查：`node --test tests/blog.test.js`（建置時格式不符也會失敗）。
+
 ## 每次更新前的檢查
 
 - `python3 tools/check_categories.py` 沒有錯誤，新商品都有分類。

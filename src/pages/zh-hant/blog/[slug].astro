@@ -1,0 +1,8 @@
+---
+import BlogPost from '../../../components/BlogPost.astro';
+import { loadPosts } from '../../../lib/blog.js';
+export function getStaticPaths() {
+  return loadPosts().map((p) => ({ params: { slug: p.slug } }));
+}
+---
+<BlogPost slug={Astro.params.slug} />

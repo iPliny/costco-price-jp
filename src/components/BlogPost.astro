@@ -1,0 +1,78 @@
+---
+import Base from '../layouts/Base.astro';
+import { loadPosts } from '../lib/blog.js';
+import { t, localePath } from '../lib/i18n.js';
+
+const lang = 'zh';
+const s = t(lang);
+const { slug } = Astro.props;
+const posts = loadPosts();
+const i = posts.findIndex((p) => p.slug === slug);
+const post = posts[i];
+const newer = posts[i - 1];
+const older = posts[i + 1];
+const path = `blog/${slug}/`;
+const siteUrl = (p) => new URL(localePath(lang, p), Astro.site).href;
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: post.title,
+    description: post.description,
+    keywords: post.labels.join(','),
+    inLanguage: 'zh-Hant',
+    datePublished: post.date,
+    dateModified: post.updated ?? post.date,
+    mainEntityOfPage: siteUrl(path),
+    author: { '@type': 'Organization', name: s.brand, url: siteUrl('') },
+    publisher: { '@type': 'Organization', name: s.brand, url: siteUrl('') },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { name: s.brand, item: siteUrl('') },
+      { name: s.blogHeading, item: siteUrl('blog/') },
+      { name: post.title, item: siteUrl(path) },
+    ].map((x, n) => ({ '@type': 'ListItem', position: n + 1, ...x })),
+  },
+];
+---
+<Base lang={lang} path={path} only="zh" title={`${post.title}｜${s.blogHeading}`} description={post.description}>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <p class="crumbs small"><a href={localePath(lang, 'blog/')}>← {s.blogHeading}</a></p>
+  <article>
+    <h1>{post.title}</h1>
+    <p class="meta small muted">
+      {s.blogPublished(post.date)}{post.updated && post.updated !== post.date && `　${s.blogUpdated(post.updated)}`}
+    </p>
+    <div class="body" set:html={post.html} />
+    <ul class="labels" aria-label={s.blogLabels}>
+      {post.labels.map((l) => <li>{l}</li>)}
+    </ul>
+  </article>
+  <nav class="pager small">
+    {older ? <a href={localePath(lang, `blog/${older.slug}/`)}>← {older.title}</a> : <span />}
+    {newer && <a class="next" href={localePath(lang, `blog/${newer.slug}/`)}>{newer.title} →</a>}
+  </nav>
+  <style>
+    h1 { font-size: 1.45rem; line-height: 1.45; margin: 4px 0; }
+    .small { font-size: .85rem; }
+    .crumbs { margin: 0 0 8px; }
+    .crumbs a { color: var(--muted); }
+    .meta { margin: 0 0 16px; }
+    .body :global(h2) { font-size: 1.15rem; margin: 28px 0 8px; padding-left: 10px; border-left: 4px solid var(--accent); line-height: 1.45; }
+    .body :global(h3) { font-size: 1.02rem; margin: 20px 0 6px; }
+    .body :global(p) { margin: 10px 0; line-height: 1.85; }
+    .body :global(small) { color: var(--muted); }
+    .body :global(table) { max-width: 100%; border-collapse: collapse; font-size: .92rem; background: var(--card); display: block; overflow-x: auto; }
+    .body :global(th), .body :global(td) { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    .body :global(thead th) { font-size: .82rem; color: var(--muted); font-weight: 600; }
+    .body :global(ul), .body :global(ol) { padding-left: 1.3em; }
+    .body :global(.bar) { color: var(--accent); letter-spacing: -1px; }
+    .labels { list-style: none; padding: 0; margin: 24px 0 0; display: flex; flex-wrap: wrap; gap: 6px; }
+    .labels li { font-size: .78rem; background: var(--accent-bg); color: var(--accent); border-radius: 999px; padding: 2px 10px; }
+    .pager { display: flex; justify-content: space-between; gap: 16px; margin-top: 28px; padding-top: 12px; border-top: 1px solid var(--line); }
+    .pager .next { text-align: right; }
+  </style>
+</Base>
