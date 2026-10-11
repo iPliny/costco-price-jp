@@ -1,7 +1,7 @@
 ---
 import { PREVIEW } from '../lib/data.js';
 import { LANGS, t, localePath } from '../lib/i18n.js';
-import { GA_ID, GSC_VERIFICATION } from '../lib/site.js';
+import { GA_ID, GA_TOTAL_ID, GSC_VERIFICATION } from '../lib/site.js';
 // path：語系內的相對路徑（首頁為 ''，商品頁為 'item/<id>/'），用來產生切換連結與 hreflang。
 // canonical：同內容另有固定網址時（例如本月話題的最新一期），指向那個網址。
 const { lang = 'ja', path = '', title, description = t(lang).siteDescription, canonical } = Astro.props;
@@ -26,11 +26,14 @@ const abs = (l) => (Astro.site ? new URL(localePath(l, path), Astro.site).href :
     {GA_ID && !PREVIEW && (
       <>
         <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}></script>
-        <script is:inline define:vars={{ GA_ID }}>
+        <script is:inline define:vars={{ GA_ID, GA_TOTAL_ID }}>
           window.dataLayer = window.dataLayer || [];
           function gtag() { dataLayer.push(arguments); }
           gtag('js', new Date());
           gtag('config', GA_ID);
+          if (location.hostname === 'costco.crawlsnek.com') {
+            gtag('config', GA_TOTAL_ID, { content_group: '日本好市多' });
+          }
         </script>
       </>
     )}
