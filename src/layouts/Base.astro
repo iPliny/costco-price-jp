@@ -4,7 +4,8 @@ import { LANGS, t, localePath } from '../lib/i18n.js';
 import { GA_ID, GA_TOTAL_ID, GSC_VERIFICATION } from '../lib/site.js';
 // path：語系內的相對路徑（首頁為 ''，商品頁為 'item/<id>/'），用來產生切換連結與 hreflang。
 // canonical：同內容另有固定網址時（例如本月話題的最新一期），指向那個網址。
-const { lang = 'ja', path = '', title, description = t(lang).siteDescription, canonical } = Astro.props;
+// only：只有單一語言的頁面（例如中文週報），不輸出另一語言的 hreflang，語言切換改連到另一語言首頁。
+const { lang = 'ja', path = '', title, description = t(lang).siteDescription, canonical, only } = Astro.props;
 const s = t(lang);
 const other = lang === 'ja' ? 'zh' : 'ja';
 const abs = (l) => (Astro.site ? new URL(localePath(l, path), Astro.site).href : localePath(l, path));
@@ -19,9 +20,13 @@ const abs = (l) => (Astro.site ? new URL(localePath(l, path), Astro.site).href :
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical ? new URL(localePath(lang, canonical), Astro.site).href : abs(lang)} />
     <slot name="head" />
-    <link rel="alternate" hreflang="ja" href={abs('ja')} />
-    <link rel="alternate" hreflang="zh-Hant" href={abs('zh')} />
-    <link rel="alternate" hreflang="x-default" href={abs('ja')} />
+    {!only && (
+      <>
+        <link rel="alternate" hreflang="ja" href={abs('ja')} />
+        <link rel="alternate" hreflang="zh-Hant" href={abs('zh')} />
+        <link rel="alternate" hreflang="x-default" href={abs('ja')} />
+      </>
+    )}
     {GSC_VERIFICATION && <meta name="google-site-verification" content={GSC_VERIFICATION} />}
     {GA_ID && !PREVIEW && (
       <>
@@ -110,8 +115,9 @@ const abs = (l) => (Astro.site ? new URL(localePath(l, path), Astro.site).href :
       <a class="brand" href={localePath(lang)}>{s.brand}</a>
       <nav class="site-nav">
         {!path.startsWith('ranking/') && <a class="nav-link" href={localePath(lang, 'ranking/')}>{s.navRanking}</a>}
+        {s.navBlog && !path.startsWith('blog/') && <a class="nav-link" href={localePath(lang, 'blog/')}>{s.navBlog}</a>}
         {!path.startsWith('favorites/') && <a class="nav-link fav-link" href={localePath(lang, 'favorites/')}><span class="fav-star" aria-hidden="true"></span><span class="fav-label">{s.navFavorites}</span><span class="fav-count" data-fav-count hidden></span></a>}
-        <a class="lang-switch" href={localePath(other, path)} hreflang={LANGS[other].htmlLang} lang={LANGS[other].htmlLang}>{LANGS[other].label}</a>
+        <a class="lang-switch" href={localePath(other, only ? '' : path)} hreflang={LANGS[other].htmlLang} lang={LANGS[other].htmlLang}>{LANGS[other].label}</a>
       </nav>
     </div></header>
     <main class="wrap"><slot /></main>
