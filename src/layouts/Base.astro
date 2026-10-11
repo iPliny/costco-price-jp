@@ -14,6 +14,7 @@ const abs = (l) => (Astro.site ? new URL(localePath(l, path), Astro.site).href :
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href={`${import.meta.env.BASE_URL}favicon.svg`} />
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical ? new URL(localePath(lang, canonical), Astro.site).href : abs(lang)} />
