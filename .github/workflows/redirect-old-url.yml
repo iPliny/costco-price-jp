@@ -1,0 +1,55 @@
+name: Old URL redirect
+
+on:
+  # Run only after Cloudflare is serving the custom domain and the GitHub
+  # Pages custom domain has been cleared. Never deploy stubs on push.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Refuse redirects while GitHub Pages has a custom domain
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data } = await github.rest.repos.getPages(context.repo);
+            if (data.cname) {
+              core.setFailed('Clear the GitHub Pages custom domain after Cloudflare is active, then rerun.');
+            }
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: actions/configure-pages@v5
+      - run: npm run build
+        env:
+          SITE: https://costco.crawlsnek.com
+          BASE: /
+          PREVIEW: '0'
+      - run: node tools/make_redirect_stubs.mjs
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist-redirect
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

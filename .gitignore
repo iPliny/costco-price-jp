@@ -1,5 +1,6 @@
 node_modules/
 dist/
+dist-redirect/
 .astro/
 data/online_fetch.csv
 __pycache__/

@@ -1,6 +1,6 @@
 # costco-price-jp
 
-日本 Costco 各倉庫店的價格觀測紀錄網站（Astro 靜態網站，部署在 GitHub Pages）。
+日本 Costco 各倉庫店的價格觀測紀錄網站（Astro 靜態網站，部署在 Cloudflare Pages：https://costco.crawlsnek.com/；程式碼與資料在 GitHub）。搬家時須依下方順序完成後台切換，合併程式碼本身不會改變 DNS。
 
 日文版在網站根目錄，繁體中文版在 `/zh-hant/`，每頁右上角可切換。介面文字在 `src/lib/i18n.js`；紀錄的備註用 `note`（中文）與 `note_ja`（日文）兩欄，新增備註時兩欄都要填。
 
@@ -70,14 +70,39 @@ Codex 的別名提案（prompt：Drive PM/Codex搜尋關鍵字Prompt）放在 `P
 
 ## 指令
 
-- `npm run build`：正式版，只含已查核紀錄
+- `npm run build`：正式版，含已查核與待確認紀錄
 - `npm run build:preview`：預覽版，含待查核紀錄，頁面加 noindex
+- `npm run build:cf`：Cloudflare Pages 建置入口；`CF_PAGES_BRANCH=main` 建正式版，其他分支（或未設定）建預覽版。固定 `SITE=https://costco.crawlsnek.com`、`BASE=/`，正式版會清除繼承的預覽模式。
 - `npm run dev`：本機開發
 
-推到 `main` 會由 GitHub Actions 自動部署到 GitHub Pages。
+Cloudflare Pages 連接 GitHub 後，推到 `main` 會自動部署正式版（包括每日爬蟲的提交）；其他分支自動產生預覽網址，含待查核紀錄、預覽橫幅及 noindex，且不送 GA4 統計。Node 版本由 `.node-version` 固定為 22；後台設定 Production branch 為 `main`、Build command 為 `npm run build:cf`、Output directory 為 `dist`。
+
+`public/_headers` 只在 `pages.dev` 主機加 `X-Robots-Tag: noindex`，正式自訂網域不加；正式版的收藏頁仍保留原有 noindex。`/_astro/` 的雜湊檔案可快取一年，HTML 與價格 JSON 不套用此規則。語系路徑、結尾斜線及收藏的 localStorage 鍵名不變。
+
+### 舊網址與搬家順序
+
+舊的 `https://ipliny.github.io/costco-price-jp/` 由 GitHub Pages 的轉址頁轉到新網址，**不要停用 GitHub Pages**。原本 GitHub Pages 自訂網域提供的自動轉址，在清空自訂網域後會改由這些靜態頁接手。轉址保留路徑、query string 與 hash；沒有預建頁面的舊連結由 `404.html` 接手（需要 JavaScript）。這是 HTML／JavaScript 轉址，不是 HTTP 301。
+
+1. 在 Cloudflare Pages 建立 Git 專案並選本 repo，使用上面的建置設定，先檢查 PR 分支預覽。合併前 `main` 尚無 `build:cf`，第一次正式建置失敗不影響既有網站。
+2. 審核並同意後合併 PR。GitHub Pages 繼續提供上一次完整網站，但不再接收新價格更新；請在同一天完成第 2–5 步。
+3. Cloudflare Pages 的 Custom domains 加入 `costco.crawlsnek.com`，等狀態為 Active，確認網站與搜尋正常。
+4. GitHub repo → Settings → Pages，清空 Custom domain 並儲存，GitHub Pages 本身維持啟用。
+5. GitHub Actions → **Old URL redirect** → Run workflow（`main`），完成後測試舊首頁、商品頁、繁中頁及搜尋參數。
+
+`redirect-old-url.yml` 只允許手動觸發，且自訂網域未清空時會拒絕執行，避免正式網域轉向自身。它先建置正式版，再由 `tools/make_redirect_stubs.mjs` 讀取所有 `dist/**/index.html` 與 sitemap 的網址，產生 `dist-redirect/`，只上傳轉址頁。一般只需在搬家當天跑一次，後來新增的商品舊連結可由 404 接手。
+
+搬家後另在 Search Console 保留舊資源，新增／驗證 `crawlsnek.com` 網域資源並提交新 sitemap；GA4 資料串流網址改成正式網址，評估 ID 與程式中的驗證碼不變。後台變更由 POYU 操作。
+
+### 還原方式
+
+- Cloudflare Pages 可還原到先前成功的正式部署；GitHub 程式碼不會因此自動還原。若壞版本會再次被推送或每日爬蟲提交觸發，應先處理對應的程式碼變更。
+- 若必須退回 GitHub Pages，**先恢復完整網站的部署流程並確認成功，不能把 DNS 指向僅有轉址頁的部署**。本次搬家前的還原點是 `293b25648ebdf9efb3fe82c1155f8ca74ebf48fe`；經 PR 審核還原該版完整網站的 deploy workflow，使用 `SITE=https://costco.crawlsnek.com`、`BASE=/` 建置正式版，上傳 `dist/`。保留後續更新的 `data/`，不要整個 repo reset 到舊日期。
+- 完整網站準備好後，再由 POYU 解除 Cloudflare Pages 的自訂網域綁定、在 GitHub Pages 填回 `costco.crawlsnek.com`，將 Cloudflare DNS 的 `costco` 指回 `ipliny.github.io`，確認 HTTPS、日中頁面與搜尋正常。回退期間不要執行 Old URL redirect。
+
+設定依據：[Cloudflare Headers](https://developers.cloudflare.com/pages/configuration/headers/)、[Build configuration](https://developers.cloudflare.com/pages/configuration/build-configuration/)、[GitHub integration](https://developers.cloudflare.com/pages/configuration/git-integration/github-integration/)。
 
 ## 流量統計
 
 `src/lib/site.js` 填入 Google Analytics 4 的評估 ID（`GA_ID`）與 Search Console 的驗證碼（`GSC_VERIFICATION`）即可啟用；
 填入 `GA_ID` 後頁尾會自動顯示使用分析工具的告知文字。預覽版不送統計。
-網站正式網址是 https://costco.crawlsnek.com/ （GitHub Pages 自訂網域，舊的 github.io 網址會自動轉址）。網站地圖在 `https://costco.crawlsnek.com/sitemap.xml`，可提交到 Search Console。
+網站正式網址是 https://costco.crawlsnek.com/ 。網站地圖在 `https://costco.crawlsnek.com/sitemap.xml`，可提交到 Search Console。

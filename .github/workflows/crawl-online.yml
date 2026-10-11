@@ -1,7 +1,8 @@
 name: Crawl online prices
 
 # Every morning 06:00 JST: fetch costco.co.jp online prices for items we track
-# in a warehouse, merge them into data/observations.csv, then redeploy the site.
+# in a warehouse and merge them into data/observations.csv.
+# Cloudflare Pages deploys automatically when the bot pushes to main.
 on:
   schedule:
     - cron: "0 21 * * *"
@@ -9,7 +10,6 @@ on:
 
 permissions:
   contents: write
-  actions: write
 
 concurrency:
   group: crawl-online
@@ -28,9 +28,7 @@ jobs:
         with:
           name: online-fetch
           path: data/online_fetch.csv
-      - name: Merge into the latest main, commit and redeploy
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Merge into the latest main and commit
         run: |
           git config user.name "online-price-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -46,8 +44,7 @@ jobs:
             git add data/observations.csv data/online_match.csv data/product_names.csv
             git commit -m "Online prices $(TZ=Asia/Tokyo date +%F)"
             if git push origin HEAD:main; then
-              # Pushes made with the workflow token don't trigger other workflows, so start the deploy explicitly.
-              gh workflow run deploy.yml --ref main
+              # The Cloudflare Pages Git integration deploys this push to main.
               exit 0
             fi
             sleep 20
