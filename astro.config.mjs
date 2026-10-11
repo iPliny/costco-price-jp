@@ -1,8 +1,8 @@
 import { defineConfig } from 'astro/config';
 
-// SITE / BASE are set by the deploy workflow; defaults work for local use.
+// SITE / BASE remain overridable for local builds and rollback deployments.
 export default defineConfig({
-  site: process.env.SITE || 'https://ipliny.github.io',
+  site: process.env.SITE || 'https://costco.crawlsnek.com',
   base: process.env.BASE || '/',
   trailingSlash: 'always',
 });

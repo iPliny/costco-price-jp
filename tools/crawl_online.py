@@ -21,7 +21,7 @@ import csv, json, re, sys, time, unicodedata, urllib.error, urllib.request
 from collections import Counter
 from datetime import datetime, timedelta, timezone
 
-UA = "costco-price-jp research bot (+https://ipliny.github.io/costco-price-jp/)"
+UA = "costco-price-jp research bot (+https://costco.crawlsnek.com/)"
 API = "https://www.costco.co.jp/rest/v2/japan/products/{}?fields=FULL&lang=ja&curr=JPY"
 PAGE = "https://www.costco.co.jp/p/{}"
 DELAY = 6
