@@ -69,6 +69,7 @@ Codex 的別名提案（prompt：Drive PM/Codex搜尋關鍵字Prompt）放在 `P
 
 ## 每次更新前的檢查
 
+- 商品圖只放 data/product_images.csv 列出的插圖（POYU 畫的示意圖），不放門市照片；頁面標示イメージ。
 - `python3 tools/check_categories.py` 沒有錯誤，新商品都有分類。
 - `node --test tests/*.test.js` 全部通過；search_aliases.csv 的別名不含真實暱稱或聊天原文。
 - 搜尋頁與商品頁沒有任何無商品番号的商品（預覽版也是）。
@@ -81,6 +82,7 @@ Codex 的別名提案（prompt：Drive PM/Codex搜尋關鍵字Prompt）放在 `P
 
 ## 指令
 
+- `python3 tools/import_product_images.py <來源資料夾>`：用 Pillow 匯入已逐張檢視的商品插圖，產生壓縮圖片與索引；不在 Cloudflare 建置時執行。
 - `npm run build`：正式版，含已查核與待確認紀錄
 - `npm run build:preview`：預覽版，含待查核紀錄，頁面加 noindex
 - `npm run build:cf`：Cloudflare Pages 建置入口；`CF_PAGES_BRANCH=main` 建正式版，其他分支（或未設定）建預覽版。固定 `SITE=https://costco.crawlsnek.com`、`BASE=/`，正式版會清除繼承的預覽模式。
