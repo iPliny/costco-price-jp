@@ -19,22 +19,30 @@ const top = categories.find((c) => c.id === p.categoryTop);
 const talks = discussionsFor(p.item_no);
 const obs = [...p.current].sort((a, b) => storeOrder(a.store, b.store) || (b.period_to || '').localeCompare(a.period_to || ''));
 ---
-<Base lang={lang} path={`item/${p.id}/`} title={s.itemTitle(name)} description={s.itemDescription(name, p.item_no, p.latest && { ...p.latest, store: storeName(lang, p.latest.store) }, p.stores.length)}>
+<Base lang={lang} path={`item/${p.id}/`} title={s.itemTitle(name)} description={s.itemDescription(name, p.item_no, p.latest && { ...p.latest, store: storeName(lang, p.latest.store) }, p.stores.length)} image={p.image?.og_file}>
   <p><a href={localePath(lang)}>{s.back}</a></p>
   {(category || p.popular) && <nav class="category-breadcrumbs" aria-label={s.categoryBreadcrumb}>
     {top && <><a href={localePath(lang, `category/${top.id}/`)}>{top[lang]}</a> › </>}
     {category && <a href={localePath(lang, `category/${category.id}/`)}>{category[lang]}</a>}
     {p.popular && <a class="badge ok" href={localePath(lang, 'category/popular/')}>{s.popularBadge}</a>}
   </nav>}
+  <div class:list={['product-header', { 'has-image': p.image }]}>
+  <div class="product-heading">
   <div class="title-row">
     <h1>{name}</h1>
     <FavButton id={p.id} lang={lang} />
   </div>
   {p.nameEn && <p class="name-en" lang="en">{p.nameEn}</p>}
   <p class="muted">{s.itemNoLabel(p.item_no)}</p>
+  </div>
+  {p.image && <figure class="product-illustration">
+    <img src={`${base}${p.image.file}`} width="640" height="640" alt={lang === 'ja' ? p.image.alt_ja : p.image.alt_zh} decoding="async" />
+    <figcaption class="muted small">{s.illustrationNote}</figcaption>
+  </figure>}
   {p.onOfficialSite && (
     <p class="online-link head-link"><a href={`https://www.costco.co.jp/p/${p.item_no}`} rel="noopener" target="_blank">{s.openOnline} ↗</a></p>
   )}
+  </div>
 
   <h2>{s.history}</h2>
   <p class="muted small">{s.historyNote}</p>
@@ -93,6 +101,17 @@ const obs = [...p.current].sort((a, b) => storeOrder(a.store, b.store) || (b.per
   )}
 
   <style>
+    .product-heading { min-width: 0; }
+    .product-illustration { margin: 12px 0 0; text-align: center; }
+    .product-illustration img { display: block; width: 160px; max-width: 100%; height: auto; margin: 0 auto; border: 1px solid var(--line); border-radius: 10px; background: var(--card); }
+    .product-illustration figcaption { margin-top: 4px; }
+    @media (min-width: 720px) {
+      .product-header.has-image { display: grid; grid-template-columns: minmax(0, 1fr) 200px; grid-template-rows: min-content 1fr; column-gap: 20px; align-items: start; }
+      .has-image .product-heading { grid-column: 1; grid-row: 1; }
+      .product-illustration { grid-column: 2; grid-row: 1 / span 2; margin: 0; }
+      .product-illustration img { width: 200px; }
+      .has-image .head-link { grid-column: 1; }
+    }
   .category-breadcrumbs { font-size: .85rem; margin-bottom: 8px; }
   .category-breadcrumbs .badge { margin-left: 8px; }
     h1 { font-size: 1.35rem; margin: 0; }

@@ -5,7 +5,7 @@ import { GA_ID, GA_TOTAL_ID, GSC_VERIFICATION } from '../lib/site.js';
 // path：語系內的相對路徑（首頁為 ''，商品頁為 'item/<id>/'），用來產生切換連結與 hreflang。
 // canonical：同內容另有固定網址時（例如本月話題的最新一期），指向那個網址。
 // only：只有單一語言的頁面（例如中文週報），不輸出另一語言的 hreflang，語言切換改連到另一語言首頁。
-const { lang = 'ja', path = '', title, description = t(lang).siteDescription, canonical, only } = Astro.props;
+const { lang = 'ja', path = '', title, description = t(lang).siteDescription, canonical, only, image } = Astro.props;
 const s = t(lang);
 const other = lang === 'ja' ? 'zh' : 'ja';
 const abs = (l) => (Astro.site ? new URL(localePath(l, path), Astro.site).href : localePath(l, path));
@@ -18,6 +18,12 @@ const abs = (l) => (Astro.site ? new URL(localePath(l, path), Astro.site).href :
     <link rel="icon" type="image/svg+xml" href={`${import.meta.env.BASE_URL}favicon.svg`} />
     <title>{title}</title>
     <meta name="description" content={description} />
+    {image && <>
+      <meta property="og:image" content={new URL(`${import.meta.env.BASE_URL}${image}`, Astro.site).href} />
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="630" />
+      <meta name="twitter:card" content="summary_large_image" />
+    </>}
     <link rel="canonical" href={canonical ? new URL(localePath(lang, canonical), Astro.site).href : abs(lang)} />
     <slot name="head" />
     {!only && (

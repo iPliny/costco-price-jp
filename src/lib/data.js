@@ -201,6 +201,18 @@ export function loadSynonymGroups() {
     .filter((g) => g.length > 1);
 }
 
+export function loadProductImages() {
+  return new Map(readCsvFile('product_images.csv').map((r) => [r.item_no, r]));
+}
+
+// An explicit weekly selection wins; otherwise choose the matching illustrated
+// product with the most observations, with a stable item-number tie break.
+export function heatImage(products, heat) {
+  if (heat.image_item_no) return products.find((p) => p.item_no === String(heat.image_item_no))?.image;
+  return products.filter((p) => p.image && matchesHeat(p, heat))
+    .sort((a, b) => b.observations.length - a.observations.length || a.item_no.localeCompare(b.item_no, 'en', { numeric: true }))[0]?.image;
+}
+
 // 商品的搜尋索引：名稱、店頭叫法、英文名、商品號、規格、分類名、別名，
 // 再把出現過的同義詞整組加進去。單字的詞（例如「米」會誤配「米国産」）不要放進同義詞表。
 // 分類名不觸發同義詞（「乳製品・卵」不代表每個乳製品都是卵）。
@@ -216,6 +228,7 @@ export function buildSearchIndex(words, synonymGroups = [], categoryNames = []) 
 
 export function loadProducts() {
   const official = loadOfficialNames();
+  const images = loadProductImages();
   const aliases = loadSearchAliases();
   const synonymGroups = loadSynonymGroups();
   const categories = loadCategories();
@@ -230,6 +243,7 @@ export function loadProducts() {
   }
   const products = [...byId.values()];
   for (const p of products) {
+    p.image = images.get(p.item_no);
     // 第一筆紀錄沒有商品名時，改用同商品其他紀錄的名稱（例如官網取得的正式名稱）；都沒有就留空，頁面改顯示商品番号。
     if (!p.name) p.name = p.observations.find((o) => o.name)?.name ?? '';
     if (!p.spec) p.spec = p.observations.find((o) => o.spec)?.spec ?? '';

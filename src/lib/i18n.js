@@ -6,6 +6,7 @@ export const LANGS = {
 
 const STRINGS = {
   ja: {
+    illustrationNote: '※イメージイラストです。実際のパッケージとは異なります。',
     brand: 'コストコ価格記録',
     allCategories: 'すべての分類',
     allInCategory: 'すべて',
@@ -129,6 +130,7 @@ const STRINGS = {
     statuses: { 已查核: '確認済み', 待確認: '要確認', 待查核: '未確認' },
   },
   zh: {
+    illustrationNote: '※示意插畫，與實際包裝不同。',
     brand: 'Costco 價格紀錄',
     allCategories: '全部分類',
     allInCategory: '全部',

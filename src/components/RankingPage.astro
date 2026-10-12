@@ -1,7 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import RankingTabs from './RankingTabs.astro';
-import { loadHeat, loadProducts, loadReports, matchesHeat, yen, COMMUNITY, CRAWLED } from '../lib/data.js';
+import { loadHeat, loadProducts, loadReports, matchesHeat, heatImage, yen, COMMUNITY, CRAWLED } from '../lib/data.js';
 import { t, storeName, sourceName, noteText, localePath } from '../lib/i18n.js';
 
 const { lang } = Astro.props;
@@ -45,6 +45,7 @@ const summary = (h) => (lang === 'ja' ? h.summary_ja : h.summary_zh);
             <details open={wi === 0 && i === 0}>
               <summary>
                 <span class="rank">{h.rank}</span>
+                {heatImage(products, h) && <img class="rank-image" src={`${import.meta.env.BASE_URL}${heatImage(products, h).file}`} width="48" height="48" alt="" loading="lazy" decoding="async" />}
                 <span class="rank-name">{name(h)}</span>
                 <span class="muted small">{s.heatPeople(h.people)}</span>
               </summary>
@@ -97,7 +98,8 @@ const summary = (h) => (lang === 'ja' ? h.summary_ja : h.summary_zh);
     details[open] summary::after { content: '－'; }
     .rank { flex: none; width: 1.8em; height: 1.8em; border-radius: 999px; background: var(--accent-bg); color: var(--accent);
       font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
-    .rank-name { flex: 1; font-weight: 600; font-size: 1.05rem; }
+    .rank-image { flex: none; width: 48px; height: 48px; border: 1px solid var(--line); border-radius: 8px; }
+    .rank-name { flex: 1; min-width: 0; overflow-wrap: anywhere; font-weight: 600; font-size: 1.05rem; }
     .body { padding: 0 14px 12px; border-top: 1px solid var(--line); }
     .week { margin-top: 20px; }
     .week-title { font-size: 1rem; margin: 0; color: var(--muted); font-weight: 600; }
