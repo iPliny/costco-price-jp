@@ -1,7 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import { loadPosts } from '../lib/blog.js';
-import { t } from '../lib/i18n.js';
+import { t, localePath } from '../lib/i18n.js';
 
 // 週報只有中文版，日文版沒有對應頁。
 const lang = 'zh';
@@ -11,6 +11,7 @@ const posts = loadPosts();
 <Base lang={lang} path="blog/" only="zh" title={s.blogTitle} description={s.blogDescription}>
   <h1>{s.blogHeading}</h1>
   <p class="muted small">{s.blogLead}</p>
+  <p class="small"><a href={localePath(lang, 'deals/')}>{s.dealsListLink}</a></p>
   {posts.length === 0 ? (
     <p class="muted">{s.blogEmpty}</p>
   ) : (

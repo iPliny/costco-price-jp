@@ -1,0 +1,96 @@
+---
+import Base from '../layouts/Base.astro';
+import FavButton from './FavButton.astro';
+import { loadProducts, weeklyDeals, yen, CRAWLED } from '../lib/data.js';
+import { t, localePath, productName, storeName, statusName, noteText, monthDay } from '../lib/i18n.js';
+
+const { lang } = Astro.props;
+const s = t(lang);
+const deals = weeklyDeals(loadProducts());
+const date = monthDay(deals.updated);
+const sections = [
+  { id: 'store-sales', title: s.dealsStore, cards: deals.storeSales },
+  { id: 'online-sales', title: s.dealsOnline, cards: deals.onlineSales },
+  { id: 'price-drops', title: s.dealsDrops, cards: deals.priceDrops },
+];
+const observed = (o) => o.source_type === CRAWLED ? s.crawledOn(o.period_from, o.period_to) : s.period(o.period_from, o.period_to);
+const price = (n, o) => yen(n) + (o.price_unit === '100g' ? s.per100g : '');
+const jsonLd = sections.map(({ title, cards }) => ({
+  '@context': 'https://schema.org', '@type': 'ItemList', name: title,
+  itemListElement: cards.slice(0, 20).map(({ product: p }, i) => ({
+    '@type': 'ListItem', position: i + 1, name: productName(lang, p),
+    url: new URL(localePath(lang, `item/${p.id}/`), Astro.site).href,
+  })),
+}));
+
+---
+<Base lang={lang} path="deals/" title={s.dealsTitle(date)} description={s.dealsDescription(deals.storeSales.length, deals.onlineSales.length, deals.priceDrops.length, date)}>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <p><a href={localePath(lang)}>{s.back}</a></p>
+  <h1>{s.dealsHeading(date)}</h1>
+  <p class="muted small"><a href={localePath(lang, 'about/')}>{s.editor}</a> ・{s.dealsMeta(deals.updated ?? s.dealsNoDate, deals.from ?? s.dealsNoDate, deals.anchor ?? s.dealsNoDate)}</p>
+  <p class="muted small">{s.dealsMethod} <a href={localePath(lang, 'about/')}>{s.methodLink}</a></p>
+  {sections.map(({ id, title, cards }) => (
+    <section id={id}>
+      <h2>{title}（{s.dealsCount(cards.length)}）</h2>
+      {[{ cards, ended: false }, ...(id === 'store-sales' ? [{ cards: deals.endedSales, ended: true }] : [])].map((group) => {
+        const Tag = group.ended ? 'details' : 'div';
+        return <Tag class={group.ended ? 'ended-sales' : undefined}>
+          {group.ended && <summary>{s.dealsEnded(group.cards.length)}</summary>}
+          {group.cards.length ? <ul class="deal-list">{group.cards.map(({ product: p, records }) => (
+            <li class="deal-card" data-item={p.item_no}>
+                <div class="card-heading">
+                  <div><h3><a href={localePath(lang, `item/${p.id}/`)}>{productName(lang, p)}</a></h3>
+                  <p class="muted small">{s.itemNoLabel(p.item_no)}</p></div>
+                  <FavButton id={p.id} lang={lang} compact />
+                </div>
+                <ul class="store-records">
+                  {records.map(({ observation: o, previous, reduction }) => (
+                    <li data-record={o.record_id}>
+                      <div class="store-top"><strong>{storeName(lang, o.store)}</strong>
+                        <span class={o.review_status === '已查核' ? 'badge ok' : 'badge pending'}>{statusName(lang, o.review_status)}</span>
+                      </div>
+                      {previous && <p class="small">{s.dealsPrevious(price(previous.price, previous), observed(previous))} →</p>}
+                      <p class="price">{price(o.price, o)}</p>
+                      <dl>
+                        {!previous && <><dt>{s.wasPrice}</dt><dd>{price(o.list_price, o)}</dd></>}
+                        <dt>{s.off}</dt><dd>{price(reduction, o)}</dd>
+                        {o.promo_end && <><dt>{s.promoEnd}</dt><dd>{o.promo_end}</dd></>}
+                        <dt>{s.observed}</dt><dd>{observed(o)}</dd>
+                        {noteText(lang, o) && <><dt>{s.note}</dt><dd>{noteText(lang, o)}</dd></>}
+                      </dl>
+                    </li>
+                  ))}
+                </ul>
+              </li>
+          ))}</ul> : <p>{s.dealsEmpty}</p>}
+        </Tag>;
+      })}
+    </section>
+  ))}
+  <nav class="related small">
+    <a href={localePath(lang, 'ranking/')}>{s.tabWeekly}</a>
+    <a href={localePath(lang, 'ranking/monthly/')}>{s.tabMonthly}</a>
+    <a href={localePath(lang, 'recent/')}>{s.recentLink}</a>
+    {lang === 'zh' && <a href={localePath(lang, 'blog/')}>{s.navBlog}</a>}
+  </nav>
+</Base>
+<style>
+  h1 { font-size: 1.5rem; line-height: 1.45; margin: 0 0 8px; }
+  h2 { font-size: 1.2rem; margin: 24px 0 10px; }
+  h3 { font-size: 1.05rem; margin: 0 0 4px; }
+  .small { font-size: .85rem; }
+  .deal-list, .store-records { list-style: none; padding: 0; display: grid; gap: 10px; }
+  .deal-card { min-width: 0; padding: 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); overflow-wrap: anywhere; }
+  .card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .card-heading > div { min-width: 0; }
+  .card-heading p { margin: 0; }
+  .store-records > li { border-top: 1px solid var(--line); padding-top: 10px; }
+  .store-top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; }
+  .price { font-weight: 700; font-size: 1.3rem; margin: 4px 0; }
+  dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 12px; font-size: .85rem; margin: 0; }
+  dt { color: var(--muted); } dd { margin: 0; }
+  summary { cursor: pointer; color: var(--accent); }
+  .ended-sales { margin-top: 12px; }
+  .related { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 28px; }
+</style>

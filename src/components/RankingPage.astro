@@ -34,6 +34,7 @@ const summary = (h) => (lang === 'ja' ? h.summary_ja : h.summary_zh);
   description={week ? s.heatDescription(week.items.map(name).join(s.storeJoin)) : s.heatTitle}
 >
   <RankingTabs lang={lang} current="weekly" />
+  <p class="small"><a href={localePath(lang, 'deals/')}>{s.dealsListLink}</a></p>
   <h1>{s.heatTitle}</h1>
   <p class="muted small">{s.heatNote}</p>
   {weeks.map((w, wi) => (

@@ -87,11 +87,18 @@ const abs = (l) => (Astro.site ? new URL(localePath(l, path), Astro.site).href :
       .site-nav { flex-wrap: wrap; justify-content: flex-end; row-gap: 4px; }
       header.site a.brand { white-space: nowrap; }
       @media (max-width: 420px) {
-        .site-nav { gap: 10px; }
+        header.site .wrap { gap: 6px; }
+        header.site a.brand { font-size: .9rem; }
+        .site-nav { gap: 7px; flex-wrap: nowrap; }
+        a.nav-link { font-size: .8rem; white-space: nowrap; }
+        a.lang-switch { font-size: .75rem; padding: 3px 7px; }
+        .nav-ranking .nav-full { display: none; }
+        .nav-ranking .nav-short { display: inline; }
         a.fav-link .fav-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
         a.fav-link .fav-star { font-size: 1.1rem; }
       }
       a.fav-link { display: inline-flex; align-items: center; gap: 3px; }
+      .nav-short { display: none; }
       .fav-count { font-size: .7rem; min-width: 1.4em; padding: 0 5px; border-radius: 999px; background: var(--accent-bg); text-align: center; }
       .fav-star::before { content: '☆'; }
       a.fav-link .fav-star::before { content: '★'; }
@@ -120,7 +127,8 @@ const abs = (l) => (Astro.site ? new URL(localePath(l, path), Astro.site).href :
     <header class="site"><div class="wrap">
       <a class="brand" href={localePath(lang)}>{s.brand}</a>
       <nav class="site-nav">
-        {!path.startsWith('ranking/') && <a class="nav-link" href={localePath(lang, 'ranking/')}>{s.navRanking}</a>}
+        {!path.startsWith('ranking/') && <a class="nav-link nav-ranking" href={localePath(lang, 'ranking/')} aria-label={s.navRanking}><span class="nav-full">{s.navRanking}</span><span class="nav-short" aria-hidden="true">{s.navRankingShort}</span></a>}
+        {!path.startsWith('deals/') && <a class="nav-link" href={localePath(lang, 'deals/')}>{s.navDeals}</a>}
         {s.navBlog && !path.startsWith('blog/') && <a class="nav-link" href={localePath(lang, 'blog/')}>{s.navBlog}</a>}
         {!path.startsWith('favorites/') && <a class="nav-link fav-link" href={localePath(lang, 'favorites/')}><span class="fav-star" aria-hidden="true"></span><span class="fav-label">{s.navFavorites}</span><span class="fav-count" data-fav-count hidden></span></a>}
         <a class="lang-switch" href={localePath(other, only ? '' : path)} hreflang={LANGS[other].htmlLang} lang={LANGS[other].htmlLang}>{LANGS[other].label}</a>
@@ -132,6 +140,7 @@ const abs = (l) => (Astro.site ? new URL(localePath(l, path), Astro.site).href :
       initFavorites();
     </script>
     <footer><div class="wrap">
+      <p><a href={localePath(lang, 'about/')}>{s.aboutHeading}</a></p>
       <p>{s.providedBy}<a href="https://crawlsnek.com/">CrawlSnek</a>{s.providedBySuffix ?? ''}</p>
       <p>{s.footer}</p>
       {GA_ID && <p>{s.analyticsNotice}</p>}

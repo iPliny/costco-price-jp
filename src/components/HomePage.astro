@@ -1,12 +1,13 @@
 ---
 import Base from '../layouts/Base.astro';
-import { loadProducts, loadCategories, sortProducts, inCategory } from '../lib/data.js';
+import { loadProducts, loadCategories, sortProducts, inCategory, weeklyDeals } from '../lib/data.js';
 import ProductList from './ProductList.astro';
-import { t, storeName, localePath } from '../lib/i18n.js';
+import { t, storeName, localePath, monthDay } from '../lib/i18n.js';
 
 const { lang } = Astro.props;
 const s = t(lang);
 const products = sortProducts(loadProducts());
+const deals = weeklyDeals(products);
 const categories = loadCategories();
 const tops = categories.filter((c) => !c.parent);
 const categoryCount = (id) => products.filter((p) => inCategory(p, id)).length;
@@ -27,6 +28,8 @@ const storeCount = (st) => products.filter((p) => p.stores.includes(st)).length;
   <div class="recent-entry">
     <a href={localePath(lang, 'recent/')}>{s.recentLink} →</a>
     <span class="muted">{s.recentHomeNote}</span>
+    <a href={localePath(lang, 'deals/')}>{s.dealsLink}</a>
+    <span class="muted">{s.dealsHomeNote(deals.storeSales.length, deals.onlineSales.length, monthDay(deals.updated))}</span>
   </div>
 
   <input id="q" type="search" placeholder={s.searchPlaceholder} aria-label={s.searchPlaceholder} autocomplete="off" />

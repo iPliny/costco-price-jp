@@ -4,7 +4,7 @@ import { loadPosts } from '../lib/blog.js';
 
 export function GET({ site }) {
   const base = import.meta.env.BASE_URL;
-  const paths = ['', 'ranking/', ...loadMonthly().map((e) => `ranking/monthly/${e.month}/`), 'recent/', 'recent/online/', ...loadProducts().map((p) => `item/${p.id}/`), ...populatedCategories().map((c) => `category/${c.id}/`)];
+  const paths = ['', 'deals/', 'about/', 'ranking/', ...loadMonthly().map((e) => `ranking/monthly/${e.month}/`), 'recent/', 'recent/online/', ...loadProducts().map((p) => `item/${p.id}/`), ...populatedCategories().map((c) => `category/${c.id}/`)];
   const url = (lang, path) => new URL(base + LANGS[lang].prefix + path, site).href;
   const entries = paths.flatMap((path) =>
     Object.keys(LANGS).map(
