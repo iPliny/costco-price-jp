@@ -147,3 +147,10 @@ test('caller hides priceRecords when all records have only one distinct observat
   const withOlder = priceRecords(p([...records, row({ period_to: '2026-10-01' })]), { preview: false });
   assert.equal(new Set(withOlder.map((o) => o.period_to)).size >= 2, true);
 });
+
+test('ended store sale pair is not listed as a drop', () => {
+  const result = run([p([row({ promo_end: '2026-10-12' }),
+    row({ price: 1000, list_price: null, discount: null, record_id: 'old', period_from: '2026-10-01', period_to: '2026-10-01' })])]);
+  assert.deepEqual(recordIds(result.endedSales), ['r1']);
+  assert.equal(result.priceDrops.length, 0);
+});

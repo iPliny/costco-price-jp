@@ -167,11 +167,12 @@ export function weeklyDeals(products, { asOf = japanToday(), preview = PREVIEW }
   const active = storeCandidates.filter((entry) => !ended(entry));
   const online = latestByStore(eligible.filter(({ observation: o }) => o.store === ONLINE_STORE &&
     o.period_to >= shiftDay(asOf, -1) && sale(o)));
-  const activePairs = new Set(active.map(({ product, observation: o }) => `${product.item_no}:${o.store}`));
+  // 已結束的特價也不算「値下がり」：價格只是暫時特價，不是降價。
+  const salePairs = new Set(storeCandidates.map(({ product, observation: o }) => `${product.item_no}:${o.store}`));
   const drops = [];
   for (const entry of latestByStore(stores.filter(({ observation: o }) => inWeek(o)))) {
     const { product, observation: o } = entry;
-    if (activePairs.has(`${product.item_no}:${o.store}`)) continue;
+    if (salePairs.has(`${product.item_no}:${o.store}`)) continue;
     const previous = stores.filter((e) => e.product.item_no === product.item_no && e.observation.store === o.store &&
       e.observation.price_unit === o.price_unit && e.observation.period_to < o.period_from)
       .sort((a, b) => compareDealRecords(a.observation, b.observation))[0]?.observation;

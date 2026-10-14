@@ -131,9 +131,10 @@ const obs = [...p.current].sort((a, b) => storeOrder(a.store, b.store) || (b.per
     .price-records { min-width: 0; margin-top: 24px; }
     .price-records summary { cursor: pointer; font-weight: 600; color: var(--accent); }
     .records-scroll { max-width: 100%; overflow-x: auto; }
-    .price-records table { width: 100%; min-width: 540px; border-collapse: collapse; background: var(--card); font-size: .85rem; }
-    .price-records th, .price-records td { text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); padding: 8px; }
+    .price-records table { width: 100%; border-collapse: collapse; background: var(--card); font-size: .85rem; }
+    .price-records th, .price-records td { text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); padding: 6px 4px; }
     .price-records small { display: block; }
+    .price-records td:nth-child(3) { white-space: nowrap; }
     .product-heading { min-width: 0; }
     .product-illustration { margin: 12px 0 0; text-align: center; }
     .product-illustration img { display: block; width: 160px; max-width: 100%; height: auto; margin: 0 auto; border: 1px solid var(--line); border-radius: 10px; background: var(--card); }
