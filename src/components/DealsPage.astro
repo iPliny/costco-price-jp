@@ -14,7 +14,7 @@ const pageUrl = new URL(localePath(lang, 'deals/'), Astro.site).href;
 const homeUrl = new URL(localePath(lang), Astro.site).href;
 const aboutUrl = new URL(localePath(lang, 'about/'), Astro.site).href;
 const inLanguage = lang === 'ja' ? 'ja' : 'zh-Hant';
-const listedStores = [...new Set([...deals.storeSales, ...deals.priceDrops].flatMap((card) => card.records.map(({ observation: o }) => o.store)))]
+const listedStores = [...new Set([...deals.storeSales, ...deals.endedSales, ...deals.priceDrops].flatMap((card) => card.records.map(({ observation: o }) => o.store)))]
   .sort(storeOrder).map((store) => storeName(lang, store)).join(s.storeJoin);
 const sections = [
   { id: 'store-sales', title: s.dealsStore, jump: s.dealsJumpStore, note: s.dealsStoreNote, cards: deals.storeSales },
