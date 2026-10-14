@@ -1,38 +1,80 @@
 ---
 import Base from '../layouts/Base.astro';
 import FavButton from './FavButton.astro';
-import { loadProducts, weeklyDeals, yen, CRAWLED } from '../lib/data.js';
+import { loadProducts, weeklyDeals, yen, CRAWLED, storeOrder } from '../lib/data.js';
 import { t, localePath, productName, storeName, statusName, noteText, monthDay } from '../lib/i18n.js';
 
 const { lang } = Astro.props;
 const s = t(lang);
 const deals = weeklyDeals(loadProducts());
 const date = monthDay(deals.updated);
+const title = s.dealsTitle(date);
+const description = s.dealsDescription(deals.storeSales.length, deals.onlineSales.length, deals.priceDrops.length, date);
+const pageUrl = new URL(localePath(lang, 'deals/'), Astro.site).href;
+const homeUrl = new URL(localePath(lang), Astro.site).href;
+const aboutUrl = new URL(localePath(lang, 'about/'), Astro.site).href;
+const inLanguage = lang === 'ja' ? 'ja' : 'zh-Hant';
+const listedStores = [...new Set([...deals.storeSales, ...deals.priceDrops].flatMap((card) => card.records.map(({ observation: o }) => o.store)))]
+  .sort(storeOrder).map((store) => storeName(lang, store)).join(s.storeJoin);
 const sections = [
-  { id: 'store-sales', title: s.dealsStore, cards: deals.storeSales },
-  { id: 'online-sales', title: s.dealsOnline, cards: deals.onlineSales },
-  { id: 'price-drops', title: s.dealsDrops, cards: deals.priceDrops },
+  { id: 'store-sales', title: s.dealsStore, jump: s.dealsJumpStore, note: s.dealsStoreNote, cards: deals.storeSales },
+  { id: 'online-sales', title: s.dealsOnline, jump: s.dealsJumpOnline, note: s.dealsOnlineNote, cards: deals.onlineSales },
+  { id: 'price-drops', title: s.dealsDrops, jump: s.dealsJumpDrops, note: s.dealsDropsNote, cards: deals.priceDrops },
 ];
 const observed = (o) => o.source_type === CRAWLED ? s.crawledOn(o.period_from, o.period_to) : s.period(o.period_from, o.period_to);
 const price = (n, o) => yen(n) + (o.price_unit === '100g' ? s.per100g : '');
-const jsonLd = sections.map(({ title, cards }) => ({
-  '@context': 'https://schema.org', '@type': 'ItemList', name: title,
+const jsonLd = [{
+  '@context': 'https://schema.org', '@type': 'CollectionPage', '@id': `${pageUrl}#webpage`,
+  url: pageUrl, name: s.dealsHeading(date), description, inLanguage,
+  author: { '@type': 'Person', name: 'ハクイ', url: aboutUrl,
+    worksFor: { '@type': 'Organization', name: s.brand, url: homeUrl } },
+  breadcrumb: { '@id': `${pageUrl}#breadcrumb` },
+  mainEntity: sections.map(({ id }) => ({ '@id': `${pageUrl}#${id}` })),
+}, {
+  '@context': 'https://schema.org', '@type': 'BreadcrumbList', '@id': `${pageUrl}#breadcrumb`,
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: s.monthlyBreadcrumbHome, item: homeUrl },
+    { '@type': 'ListItem', position: 2, name: s.dealsPageLabel, item: pageUrl },
+  ],
+}, ...sections.map(({ id, title, cards }) => ({
+  '@context': 'https://schema.org', '@type': 'ItemList', '@id': `${pageUrl}#${id}`,
+  name: title, url: `${pageUrl}#${id}`, numberOfItems: cards.length,
   itemListElement: cards.slice(0, 20).map(({ product: p }, i) => ({
     '@type': 'ListItem', position: i + 1, name: productName(lang, p),
     url: new URL(localePath(lang, `item/${p.id}/`), Astro.site).href,
   })),
-}));
+}))];
 
 ---
-<Base lang={lang} path="deals/" title={s.dealsTitle(date)} description={s.dealsDescription(deals.storeSales.length, deals.onlineSales.length, deals.priceDrops.length, date)}>
-  <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
-  <p><a href={localePath(lang)}>{s.back}</a></p>
+<Base lang={lang} path="deals/" title={title} description={description}>
+  <Fragment slot="head">
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={pageUrl} />
+    <meta property="og:site_name" content={s.brand} />
+    <meta property="og:locale" content={lang === 'ja' ? 'ja_JP' : 'zh_TW'} />
+    <meta property="og:locale:alternate" content={lang === 'ja' ? 'zh_TW' : 'ja_JP'} />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  </Fragment>
+  <nav class="breadcrumbs small" aria-label={s.dealsBreadcrumbLabel}>
+    <a href={localePath(lang)}>{s.monthlyBreadcrumbHome}</a> › <span aria-current="page">{s.dealsPageLabel}</span>
+  </nav>
   <h1>{s.dealsHeading(date)}</h1>
   <p class="muted small"><a href={localePath(lang, 'about/')}>{s.editor}</a> ・{s.dealsMeta(deals.updated ?? s.dealsNoDate, deals.from ?? s.dealsNoDate, deals.anchor ?? s.dealsNoDate)}</p>
+  <p class="lead">{s.dealsLead}</p>
+  {listedStores && <p class="muted small">{s.dealsStoreCoverage(listedStores)}</p>}
   <p class="muted small">{s.dealsMethod} <a href={localePath(lang, 'about/')}>{s.methodLink}</a></p>
-  {sections.map(({ id, title, cards }) => (
+  <nav class="section-links small" aria-label={s.dealsJumpLabel}>
+    {sections.map(({ id, jump, cards }) => <a href={`#${id}`}>{jump}（{s.dealsCount(cards.length)}）</a>)}
+  </nav>
+  {sections.map(({ id, title, note, cards }) => (
     <section id={id}>
       <h2>{title}（{s.dealsCount(cards.length)}）</h2>
+      <p class="muted small">{note}</p>
       {[{ cards, ended: false }, ...(id === 'store-sales' ? [{ cards: deals.endedSales, ended: true }] : [])].map((group) => {
         const Tag = group.ended ? 'details' : 'div';
         return <Tag class={group.ended ? 'ended-sales' : undefined}>
@@ -80,6 +122,11 @@ const jsonLd = sections.map(({ title, cards }) => ({
   h2 { font-size: 1.2rem; margin: 24px 0 10px; }
   h3 { font-size: 1.05rem; margin: 0 0 4px; }
   .small { font-size: .85rem; }
+  .breadcrumbs { margin: 0 0 16px; color: var(--muted); }
+  .lead { margin: 12px 0; }
+  .section-links { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+  .section-links a { text-decoration: none; border: 1px solid var(--line); border-radius: 999px; padding: 6px 10px; background: var(--card); }
+  section { scroll-margin-top: 16px; }
   .deal-list, .store-records { list-style: none; padding: 0; display: grid; gap: 10px; }
   .deal-card { min-width: 0; padding: 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); overflow-wrap: anywhere; }
   .card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }

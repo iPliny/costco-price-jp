@@ -45,6 +45,8 @@
 
 規則檢查：`node --test tests/deals.test.js`；預覽建置：`CF_PAGES_BRANCH=test npm run build:cf`。
 
+日文降價頁以「コストコ 今週のセール・値下げ一覧」開頭，更新日期取實際紀錄日，標題與 h1 一致；摘要說明店頭／官網／與前次比較的件數及價格欄位。頁面列出實際出現的倉庫店、三組選取規則與跳轉入口。雙語共用可見麵包屑、對應的 BreadcrumbList、CollectionPage 與三組 ItemList（各最多 20 件，numberOfItems 記全組件數），並提供 Open Graph／Twitter 文字摘要。canonical、hreflang 均維持正式雙語網址；分支預覽保留 noindex。SEO 文案不宣稱目前售價、所有門市均有優惠或保證最低價。
+
 ### 過去の記録
 
 商品頁原有各店最新價格保持原樣；`priceRecords(p)` 在下方新增預設收合的全部公開紀錄表，依 `period_to` 新到舊、固定店別順序、紀錄編號排序。至少有兩個不同觀測終日才顯示。含官網及社群回報，保留來源、狀態、備註與原價；表格內部可橫向捲動，不畫走勢圖。
