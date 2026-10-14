@@ -24,7 +24,7 @@ const jsonLd = [
     datePublished: post.date,
     dateModified: post.updated ?? post.date,
     mainEntityOfPage: siteUrl(path),
-    author: { '@type': 'Organization', name: s.brand, url: siteUrl('') },
+    author: { '@type': 'Person', name: 'ハクイ', url: siteUrl('about/'), worksFor: { '@type': 'Organization', name: s.brand, url: siteUrl('') } },
     publisher: { '@type': 'Organization', name: s.brand, url: siteUrl('') },
   },
   {
@@ -44,12 +44,14 @@ const jsonLd = [
   <article>
     <h1>{post.title}</h1>
     <p class="meta small muted">
+      <a href={localePath(lang, 'about/')}>{s.editor}</a> ・
       {s.blogPublished(post.date)}{post.updated && post.updated !== post.date && `　${s.blogUpdated(post.updated)}`}
     </p>
     <div class="body" set:html={post.html} />
     <ul class="labels" aria-label={s.blogLabels}>
       {post.labels.map((l) => <li>{l}</li>)}
     </ul>
+    <p class="small"><a href={localePath(lang, 'deals/')}>{s.dealsListLink}</a></p>
   </article>
   <nav class="pager small">
     {older ? <a href={localePath(lang, `blog/${older.slug}/`)}>← {older.title}</a> : <span />}

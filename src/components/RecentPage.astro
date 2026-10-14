@@ -18,6 +18,7 @@ const entries = recentProducts(loadProducts(), channel);
   </nav>
   <p class="muted small">{s.recentNote}</p>
   <p class="muted small">{s.recentDateNote}</p>
+  <p class="small"><a href={localePath(lang, 'deals/')}>{s.dealsListLink}</a></p>
   {entries.some(({ observation }) => observation.source_type === COMMUNITY) && <p class="muted small">{s.communityNote}</p>}
   <p class="muted small">{s.recentCount(entries.length)}</p>
   {entries.length === 0 && <p>{s.recentEmpty}</p>}

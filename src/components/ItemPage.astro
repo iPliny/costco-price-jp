@@ -1,7 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import FavButton from './FavButton.astro';
-import { yen, COMMUNITY, CRAWLED, storeOrder, onlineDiff, discussionsFor, loadCategories } from '../lib/data.js';
+import { yen, COMMUNITY, CRAWLED, storeOrder, onlineDiff, discussionsFor, loadCategories, loadWeeklyDeals, priceRecords } from '../lib/data.js';
 import { t, storeName, sourceName, statusName, noteText, localePath, productName } from '../lib/i18n.js';
 
 const { p, lang } = Astro.props;
@@ -17,14 +17,20 @@ const categories = loadCategories();
 const category = categories.find((c) => c.id === p.category);
 const top = categories.find((c) => c.id === p.categoryTop);
 const talks = discussionsFor(p.item_no);
+const records = priceRecords(p);
+const showRecords = new Set(records.map((o) => o.period_to)).size >= 2;
+const deals = loadWeeklyDeals();
+const onSale = [...deals.storeSales, ...deals.onlineSales].some((card) => card.product.item_no === p.item_no);
+const dropped = deals.priceDrops.some((card) => card.product.item_no === p.item_no);
 const obs = [...p.current].sort((a, b) => storeOrder(a.store, b.store) || (b.period_to || '').localeCompare(a.period_to || ''));
 ---
 <Base lang={lang} path={`item/${p.id}/`} title={s.itemTitle(name)} description={s.itemDescription(name, p.item_no, p.latest && { ...p.latest, store: storeName(lang, p.latest.store) }, p.stores.length)} image={p.image?.og_file}>
   <p><a href={localePath(lang)}>{s.back}</a></p>
-  {(category || p.popular) && <nav class="category-breadcrumbs" aria-label={s.categoryBreadcrumb}>
+  {(category || p.popular || onSale || dropped) && <nav class="category-breadcrumbs" aria-label={s.categoryBreadcrumb}>
     {top && <><a href={localePath(lang, `category/${top.id}/`)}>{top[lang]}</a> › </>}
     {category && <a href={localePath(lang, `category/${category.id}/`)}>{category[lang]}</a>}
     {p.popular && <a class="badge ok" href={localePath(lang, 'category/popular/')}>{s.popularBadge}</a>}
+    {(onSale || dropped) && <a class="badge ok" href={localePath(lang, 'deals/')}>{onSale ? s.dealsSaleBadge : s.dealsDropBadge}</a>}
   </nav>}
   <div class:list={['product-header', { 'has-image': p.image }]}>
   <div class="product-heading">
@@ -83,6 +89,27 @@ const obs = [...p.current].sort((a, b) => storeOrder(a.store, b.store) || (b.per
     ))}
   </ul>
 
+  {showRecords && <details class="price-records">
+    <summary>{s.pastRecords(records.length)}</summary>
+    <p class="muted small">{s.pastRecordsNote}</p>
+    {records.some((o) => o.source_type === COMMUNITY) && <p class="muted small">{s.communityNote}</p>}
+    <div class="records-scroll" tabindex="0" role="region" aria-label={s.pastRecords(records.length)}>
+      <table>
+        <thead><tr><th scope="col">{s.observed}</th><th scope="col">{s.recordsStore}</th><th scope="col">{s.recordsPrice}</th><th scope="col">{s.recordsStatus}</th></tr></thead>
+        <tbody>{records.map((o) => <tr data-record={o.record_id}>
+          <td>{o.source_type === CRAWLED ? s.crawledOn(o.period_from, o.period_to) : s.period(o.period_from, o.period_to)}</td>
+          <td>{storeName(lang, o.store)}<small class="muted">{sourceName(lang, o.source_type)}</small></td>
+          <td>{yen(o.price)}{o.price_unit === '100g' && s.per100g}
+            {o.list_price != null && <small class="muted">{s.wasPrice} {yen(o.list_price)}{o.price_unit === '100g' && s.per100g}</small>}
+          </td>
+          <td><span class={o.review_status === '已查核' ? 'badge ok' : 'badge pending'}>{statusName(lang, o.review_status)}</span>
+            {noteText(lang, o) && <small class="muted">{noteText(lang, o)}</small>}
+          </td>
+        </tr>)}</tbody>
+      </table>
+    </div>
+  </details>}
+
   {talks.length > 0 && (
     <section class="talks">
       <h2>{s.discussions}</h2>
@@ -101,6 +128,13 @@ const obs = [...p.current].sort((a, b) => storeOrder(a.store, b.store) || (b.per
   )}
 
   <style>
+    .price-records { min-width: 0; margin-top: 24px; }
+    .price-records summary { cursor: pointer; font-weight: 600; color: var(--accent); }
+    .records-scroll { max-width: 100%; overflow-x: auto; }
+    .price-records table { width: 100%; border-collapse: collapse; background: var(--card); font-size: .85rem; }
+    .price-records th, .price-records td { text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); padding: 6px 4px; }
+    .price-records small { display: block; }
+    .price-records td:nth-child(3) { white-space: nowrap; }
     .product-heading { min-width: 0; }
     .product-illustration { margin: 12px 0 0; text-align: center; }
     .product-illustration img { display: block; width: 160px; max-width: 100%; height: auto; margin: 0 auto; border: 1px solid var(--line); border-radius: 10px; background: var(--card); }

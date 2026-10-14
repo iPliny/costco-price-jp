@@ -30,7 +30,7 @@ const jsonLd = [
     datePublished: ed.published,
     dateModified: ed.updated ?? ed.published,
     mainEntityOfPage: siteUrl(editionPath),
-    author: { '@type': 'Organization', name: s.brand, url: siteUrl('') },
+    author: { '@type': 'Person', name: 'ハクイ', url: siteUrl('about/'), worksFor: { '@type': 'Organization', name: s.brand, url: siteUrl('') } },
     publisher: { '@type': 'Organization', name: s.brand, url: siteUrl('') },
   },
   {
@@ -47,6 +47,7 @@ const jsonLd = [
 <Base lang={lang} path={path} canonical={editionPath} title={`${L(ed, 'title')}｜${s.brand}`} description={L(ed, 'description')}>
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   <RankingTabs lang={lang} current="monthly" />
+  <p class="small"><a href={localePath(lang, 'deals/')}>{s.dealsListLink}</a></p>
   <nav class="crumbs muted small" aria-label="breadcrumb">
     <a href={localePath(lang)}>{s.monthlyBreadcrumbHome}</a> › <a href={localePath(lang, 'ranking/monthly/')}>{s.monthlyTitle}</a> › <span>{s.monthlyLabel(ed.month)}</span>
   </nav>
@@ -54,6 +55,7 @@ const jsonLd = [
     <p class="issue">{s.monthlyLabel(ed.month)}</p>
     <h1>{L(ed, 'title')}</h1>
     <p class="muted small">
+      <a href={localePath(lang, 'about/')}>{s.editor}</a> ・
       <time datetime={ed.published}>{s.monthlyPublished(ed.published)}</time>
       {ed.updated && ed.updated !== ed.published && <> ・<time datetime={ed.updated}>{s.monthlyUpdated(ed.updated)}</time></>}
     </p>

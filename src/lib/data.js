@@ -125,6 +125,80 @@ export function recentProducts(products, channel, { limit = 20, asOf = japanToda
 
 const compareItemNo = (a, b) => a.product.item_no.localeCompare(b.product.item_no, 'en', { numeric: true });
 
+const publiclyVisible = (o, preview) => PUBLISHABLE.has(o.review_status) || (preview && o.review_status === '待查核');
+const shiftDay = (date, days) => new Date(Date.parse(`${date}T00:00:00Z`) + days * 86400000).toISOString().slice(0, 10);
+const compareDealRecords = (a, b) => b.period_to.localeCompare(a.period_to) ||
+  (STATUS_RANK[b.review_status] ?? 0) - (STATUS_RANK[a.review_status] ?? 0) ||
+  (a.record_id || '').localeCompare(b.record_id || '', 'en', { numeric: true });
+
+// 全部公開歷史獨立於 p.current；同日保留各筆紀錄，不改現有各店最新取價。
+export function priceRecords(p, { preview = PREVIEW } = {}) {
+  if (!p.item_no) return [];
+  return (p.observations || []).filter((o) => o.item_no === p.item_no && publiclyVisible(o, preview))
+    .sort((a, b) => (b.period_to || '').localeCompare(a.period_to || '') || storeOrder(a.store, b.store) ||
+      (a.record_id || '').localeCompare(b.record_id || '', 'en', { numeric: true }));
+}
+
+// 每組一商品一卡；店別、價格、日期与狀態始終取自同一筆紀錄。
+export function weeklyDeals(products, { asOf = japanToday(), preview = PREVIEW } = {}) {
+  const empty = { storeSales: [], onlineSales: [], priceDrops: [], endedSales: [], anchor: null, from: null, updated: null };
+  if (!validObservationDate(asOf)) return empty;
+  const eligible = products.filter((p) => p.item_no).flatMap((product) =>
+    (product.observations || []).filter((o) => o.item_no === product.item_no && o.store && publiclyVisible(o, preview) &&
+      o.source_type !== COMMUNITY && Number.isFinite(o.price) && o.price >= 0 && ['件', '100g'].includes(o.price_unit) &&
+      validObservationDate(o.period_from) && validObservationDate(o.period_to) && o.period_from <= o.period_to && o.period_to <= asOf
+    ).map((observation) => ({ product, observation })));
+  const stores = eligible.filter(({ observation: o }) => o.store !== ONLINE_STORE);
+  const anchor = stores.reduce((date, { observation: o }) => o.period_to > date ? o.period_to : date, '') || null;
+  const from = anchor ? shiftDay(anchor, -6) : null;
+  const inWeek = (o) => anchor && o.period_to >= from && o.period_to <= anchor;
+  const sale = (o) => Number.isFinite(o.list_price) && o.list_price > o.price;
+  const latestByStore = (rows) => {
+    const best = new Map();
+    for (const entry of rows) {
+      const key = `${entry.product.item_no}:${entry.observation.store}`;
+      const previous = best.get(key);
+      if (!previous || compareDealRecords(entry.observation, previous.observation) < 0) best.set(key, entry);
+    }
+    return [...best.values()];
+  };
+  const storeCandidates = latestByStore(stores.filter(({ observation: o }) => inWeek(o) && sale(o)));
+  const ended = ({ observation: o }) => validObservationDate(o.promo_end) && o.promo_end < asOf;
+  const active = storeCandidates.filter((entry) => !ended(entry));
+  const online = latestByStore(eligible.filter(({ observation: o }) => o.store === ONLINE_STORE &&
+    o.period_to >= shiftDay(asOf, -1) && sale(o)));
+  // 已結束的特價也不算「値下がり」：價格只是暫時特價，不是降價。
+  const salePairs = new Set(storeCandidates.map(({ product, observation: o }) => `${product.item_no}:${o.store}`));
+  const drops = [];
+  for (const entry of latestByStore(stores.filter(({ observation: o }) => inWeek(o)))) {
+    const { product, observation: o } = entry;
+    if (salePairs.has(`${product.item_no}:${o.store}`)) continue;
+    const previous = stores.filter((e) => e.product.item_no === product.item_no && e.observation.store === o.store &&
+      e.observation.price_unit === o.price_unit && e.observation.period_to < o.period_from)
+      .sort((a, b) => compareDealRecords(a.observation, b.observation))[0]?.observation;
+    if (previous && o.price < previous.price) drops.push({ ...entry, previous, reduction: previous.price - o.price });
+  }
+  const group = (rows, isDrop = false) => {
+    const byItem = new Map();
+    for (const entry of rows) {
+      const id = entry.product.item_no;
+      if (!byItem.has(id)) byItem.set(id, { product: entry.product, records: [] });
+      byItem.get(id).records.push({ ...entry, reduction: entry.reduction ?? entry.observation.list_price - entry.observation.price });
+    }
+    return [...byItem.values()].map((card) => {
+      card.records.sort((a, b) => storeOrder(a.observation.store, b.observation.store));
+      card.reduction = Math.max(...card.records.map((r) => r.reduction));
+      card.rate = Math.max(...card.records.filter((r) => r.reduction === card.reduction)
+        .map((r) => r.reduction / (isDrop ? r.previous.price : r.observation.list_price)));
+      return card;
+    }).sort((a, b) => b.reduction - a.reduction || (!isDrop && b.rate - a.rate) || compareItemNo(a, b));
+  };
+  const used = [...active, ...online, ...drops];
+  const updated = used.reduce((date, { observation: o }) => o.period_to > date ? o.period_to : date, '') || anchor;
+  return { storeSales: group(active), onlineSales: group(online), priceDrops: group(drops, true),
+    endedSales: group(storeCandidates.filter(ended)), anchor, from, updated };
+}
+
 function seededRandom(text) {
   let h = 2166136261;
   for (const ch of text) h = Math.imul(h ^ ch.codePointAt(0), 16777619);
@@ -134,6 +208,15 @@ function seededRandom(text) {
     x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x;
     return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
   };
+}
+
+// 靜態建置的所有商品頁共用當日清單，避免每頁重讀全站資料。
+// weeklyDeals 本身保持純函式；快取僅限建置程序，跨日重新計算。
+let dealsCache;
+export function loadWeeklyDeals() {
+  const asOf = japanToday();
+  if (dealsCache?.asOf !== asOf) dealsCache = { asOf, value: weeklyDeals(loadProducts(), { asOf }) };
+  return dealsCache.value;
 }
 
 function shuffle(items, random) {

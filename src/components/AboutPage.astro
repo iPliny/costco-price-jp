@@ -1,0 +1,20 @@
+---
+import Base from '../layouts/Base.astro';
+import { loadProducts, priceRecords, storeOrder, ONLINE_STORE } from '../lib/data.js';
+import { t, localePath, storeName } from '../lib/i18n.js';
+const { lang } = Astro.props;
+const s = t(lang);
+const products = loadProducts();
+const records = products.flatMap((p) => priceRecords(p));
+const stores = [...new Set(records.map((o) => o.store).filter((store) => store && store !== ONLINE_STORE))]
+  .sort(storeOrder).map((store) => storeName(lang, store)).join(s.storeJoin);
+---
+<Base lang={lang} path="about/" title={s.aboutTitle}>
+  <p><a href={localePath(lang)}>{s.back}</a></p>
+  <h1>{s.aboutHeading}</h1>
+  {s.aboutParagraphs(stores, products.length, records.length).map((paragraph) => <p>{paragraph}</p>)}
+</Base>
+<style>
+  h1 { font-size: 1.5rem; }
+  p { overflow-wrap: anywhere; }
+</style>
