@@ -75,7 +75,7 @@ const jsonLd = [{
   <p class="muted small">{s.dealsMethod} <a href={localePath(lang, 'about/')}>{s.methodLink}</a></p>
   <nav class="section-links small" aria-label={s.dealsJumpLabel}>
     {sections.map(({ id, jump, cards }) => <a href={`#${id}`}>{jump}（{s.dealsCount(cards.length)}）</a>)}
-    {coupons.length > 0 && <a href="#coupons">{s.couponsJump}（{s.dealsCount(coupons.length)}）</a>}
+    {coupons.length > 0 && <a href="#coupons">{s.couponsJump}（<span data-coupon-count>{s.dealsCount(coupons.length)}</span>）</a>}
   </nav>
   {sections.map(({ id, title, note, cards }) => (
     <section id={id}>
@@ -117,7 +117,7 @@ const jsonLd = [{
     </section>
   ))}
   {coupons.length > 0 && <section id="coupons">
-    <h2>{s.couponsTitle}（{s.dealsCount(coupons.length)}{couponPeriod}）</h2>
+    <h2>{s.couponsTitle}（<span data-coupon-count>{s.dealsCount(coupons.length)}</span>{couponPeriod}）</h2>
     <p class="muted small">{s.couponsNote}</p>
     <ul class="deal-list">{coupons.map((row) => <li class="deal-card" data-coupon={row.item_no} data-until={row.week_to}>
       <div class="store-top"><h3>{row.product ? <a href={localePath(lang, `item/${row.product.id}/`)}>{row.name_ja}</a> : row.name_ja}</h3>
@@ -131,12 +131,14 @@ const jsonLd = [{
       </dl>
     </li>)}</ul>
   </section>}
-  {coupons.length > 0 && <script is:inline>
+  {coupons.length > 0 && <script is:inline define:vars={{ countTemplate: s.dealsCount(0) }}>
     // 靜態頁不一定每天重建：在瀏覽器把已過期的折價券藏起來（日本時間）。
     (() => {
       const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tokyo' }).format(new Date());
       const cards = [...document.querySelectorAll('#coupons [data-until]')];
       cards.forEach((li) => { if (li.dataset.until < today) li.hidden = true; });
+      const left = cards.filter((li) => !li.hidden).length;
+      if (left !== cards.length) document.querySelectorAll('[data-coupon-count]').forEach((el) => { el.textContent = countTemplate.replace('0', String(left)); });
       if (cards.length && cards.every((li) => li.hidden)) {
         document.getElementById('coupons').hidden = true;
         document.querySelector('.section-links a[href="#coupons"]')?.setAttribute('hidden', '');

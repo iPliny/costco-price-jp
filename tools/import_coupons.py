@@ -67,7 +67,13 @@ def valid_date(s):
 def issue_week(row):
     # The sample URL contains an issue date, not a guessable next-issue URL.
     match = re.search(r'/upz/(\d{6})_', row['source_url'])
-    day = valid_date('20' + match[1][:2] + '-' + match[1][2:4] + '-' + match[1][4:6]) if match else valid_date(row['fetched_at'][:10])
+    if match:
+        day = valid_date('20' + match[1][:2] + '-' + match[1][2:4] + '-' + match[1][4:6])
+    elif row['source'] == '電子報':
+        # Grouping a newsletter by import time would duplicate it when re-imported in a later week.
+        raise ValueError('newsletter URL has no issue date (/upz/YYMMDD_)')
+    else:
+        day = valid_date(row['fetched_at'][:10])
     return (day - timedelta(days=day.weekday())).isoformat()
 
 

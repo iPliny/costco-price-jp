@@ -46,7 +46,8 @@ class ImportTest(unittest.TestCase):
             self.assertEqual(len(read()), 2)
             saved = output.read_bytes()
             for rows in [[row, row], [dict(row, discount_yen='-1')], [dict(row, week_to='2026-02-30')],
-                         [dict(row, source_url='https://example.com/')]]:
+                         [dict(row, source_url='https://example.com/')],
+                         [dict(row, source_url='https://cds2.costcojapan.jp/cds/mail-images/other/pc_index.html')]]:
                 data['rows'] = rows
                 write()
                 with self.assertRaises(ValueError):
