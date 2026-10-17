@@ -13,7 +13,7 @@ const asOf = couponToday();
 const coupons = activeCoupons(loadCoupons(), products, asOf);
 const couponPeriod = coupons.length ? s.couponsPeriod(monthDay(asOf), monthDay(coupons.map((r) => r.week_to).sort().at(-1))) : '';
 const date = monthDay(deals.updated);
-const title = couponPeriod + s.dealsTitle(date);
+const title = coupons.length ? s.dealsTitleCoupons(date) : s.dealsTitle(date);
 const description = s.dealsDescription(deals.storeSales.length, deals.onlineSales.length, deals.priceDrops.length, date) + (coupons.length ? s.couponsDescription(coupons.length, couponPeriod) : '');
 const pageUrl = new URL(localePath(lang, 'deals/'), Astro.site).href;
 const homeUrl = new URL(localePath(lang), Astro.site).href;
@@ -68,7 +68,7 @@ const jsonLd = [{
   <nav class="breadcrumbs small" aria-label={s.dealsBreadcrumbLabel}>
     <a href={localePath(lang)}>{s.monthlyBreadcrumbHome}</a> › <span aria-current="page">{s.dealsPageLabel}</span>
   </nav>
-  <h1>{couponPeriod}{s.dealsHeading(date)}</h1>
+  <h1>{coupons.length ? s.dealsHeadingCoupons(date) : s.dealsHeading(date)}</h1>
   <p class="muted small"><a href={localePath(lang, 'about/')}>{s.editor}</a> ・{s.dealsMeta(deals.updated ?? s.dealsNoDate, deals.from ?? s.dealsNoDate, deals.anchor ?? s.dealsNoDate)}</p>
   <p class="lead">{s.dealsLead}</p>
   {listedStores && <p class="muted small">{s.dealsStoreCoverage(listedStores)}</p>}
@@ -117,9 +117,9 @@ const jsonLd = [{
     </section>
   ))}
   {coupons.length > 0 && <section id="coupons">
-    <h2>{s.couponsTitle}（{s.dealsCount(coupons.length)}）</h2>
+    <h2>{s.couponsTitle}（{s.dealsCount(coupons.length)}{couponPeriod}）</h2>
     <p class="muted small">{s.couponsNote}</p>
-    <ul class="deal-list">{coupons.map((row) => <li class="deal-card" data-coupon={row.item_no}>
+    <ul class="deal-list">{coupons.map((row) => <li class="deal-card" data-coupon={row.item_no} data-until={row.week_to}>
       <div class="store-top"><h3>{row.product ? <a href={localePath(lang, `item/${row.product.id}/`)}>{row.name_ja}</a> : row.name_ja}</h3>
         <span class="badge">{s.couponsBadge}</span></div>
       <p class="muted small">{s.itemNoLabel(row.item_no)} ・{row.scope === '倉庫店' ? s.couponsWarehouse : s.couponsOnline}</p>
@@ -131,6 +131,18 @@ const jsonLd = [{
       </dl>
     </li>)}</ul>
   </section>}
+  {coupons.length > 0 && <script is:inline>
+    // 靜態頁不一定每天重建：在瀏覽器把已過期的折價券藏起來（日本時間）。
+    (() => {
+      const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tokyo' }).format(new Date());
+      const cards = [...document.querySelectorAll('#coupons [data-until]')];
+      cards.forEach((li) => { if (li.dataset.until < today) li.hidden = true; });
+      if (cards.length && cards.every((li) => li.hidden)) {
+        document.getElementById('coupons').hidden = true;
+        document.querySelector('.section-links a[href="#coupons"]')?.setAttribute('hidden', '');
+      }
+    })();
+  </script>}
   <nav class="related small">
     <a href={localePath(lang, 'ranking/')}>{s.tabWeekly}</a>
     <a href={localePath(lang, 'ranking/monthly/')}>{s.tabMonthly}</a>

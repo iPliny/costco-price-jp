@@ -42,7 +42,7 @@ export function activeCoupons(rows, products, asOf = couponToday()) {
 export function couponList(rows, lang, pageUrl, site) {
   return {
     '@context': 'https://schema.org', '@type': 'ItemList', '@id': `${pageUrl}#coupons`,
-    name: lang === 'ja' ? '今週のクーポン対象商品（全品）' : '本週折價券商品（全部）',
+    name: lang === 'ja' ? '今週のクーポン対象商品・公式メルマガより' : '本週折價券商品・官方電子報',
     url: `${pageUrl}#coupons`, numberOfItems: rows.length,
     itemListElement: rows.map((row, i) => ({
       '@type': 'ListItem', position: i + 1, name: row.name_ja,
