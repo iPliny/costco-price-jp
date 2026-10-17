@@ -8,7 +8,7 @@ import { normalize } from './search.js';
 export const PREVIEW = process.env.PREVIEW === '1';
 const PUBLISHABLE = new Set(['已查核', '待確認']);
 
-function parseCsv(text) {
+export function parseCsv(text) {
   const rows = [];
   let row = [], field = '', quoted = false;
   for (let i = 0; i < text.length; i++) {
