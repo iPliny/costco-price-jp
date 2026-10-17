@@ -2,7 +2,8 @@
 import Base from '../layouts/Base.astro';
 import FavButton from './FavButton.astro';
 import { yen, COMMUNITY, CRAWLED, storeOrder, onlineDiff, discussionsFor, loadCategories, loadWeeklyDeals, priceRecords } from '../lib/data.js';
-import { t, storeName, sourceName, statusName, noteText, localePath, productName } from '../lib/i18n.js';
+import { t, storeName, sourceName, statusName, noteText, localePath, productName, monthDay } from '../lib/i18n.js';
+import { loadCoupons, activeCoupons, couponToday } from '../lib/coupons.js';
 
 const { p, lang } = Astro.props;
 const s = t(lang);
@@ -22,15 +23,18 @@ const showRecords = new Set(records.map((o) => o.period_to)).size >= 2;
 const deals = loadWeeklyDeals();
 const onSale = [...deals.storeSales, ...deals.onlineSales].some((card) => card.product.item_no === p.item_no);
 const dropped = deals.priceDrops.some((card) => card.product.item_no === p.item_no);
+// 本週官方電子報折價券（只在有效期內顯示；靜態頁過期後由瀏覽器隱藏）。
+const coupon = activeCoupons(loadCoupons(), [p], couponToday()).find((c) => c.item_no === p.item_no);
 const obs = [...p.current].sort((a, b) => storeOrder(a.store, b.store) || (b.period_to || '').localeCompare(a.period_to || ''));
 ---
 <Base lang={lang} path={`item/${p.id}/`} title={s.itemTitle(name)} description={s.itemDescription(name, p.item_no, p.latest && { ...p.latest, store: storeName(lang, p.latest.store) }, p.stores.length)} image={p.image?.og_file}>
   <p><a href={localePath(lang)}>{s.back}</a></p>
-  {(category || p.popular || onSale || dropped) && <nav class="category-breadcrumbs" aria-label={s.categoryBreadcrumb}>
+  {(category || p.popular || onSale || dropped || coupon) && <nav class="category-breadcrumbs" aria-label={s.categoryBreadcrumb}>
     {top && <><a href={localePath(lang, `category/${top.id}/`)}>{top[lang]}</a> › </>}
     {category && <a href={localePath(lang, `category/${category.id}/`)}>{category[lang]}</a>}
     {p.popular && <a class="badge ok" href={localePath(lang, 'category/popular/')}>{s.popularBadge}</a>}
     {(onSale || dropped) && <a class="badge ok" href={localePath(lang, 'deals/')}>{onSale ? s.dealsSaleBadge : s.dealsDropBadge}</a>}
+    {coupon && <a class="badge ok" href={`${localePath(lang, 'deals/')}#coupons`} data-coupon-until={coupon.week_to}>{s.couponsBadge}</a>}
   </nav>}
   <div class:list={['product-header', { 'has-image': p.image }]}>
   <div class="product-heading">
@@ -49,6 +53,23 @@ const obs = [...p.current].sort((a, b) => storeOrder(a.store, b.store) || (b.per
     <p class="online-link head-link"><a href={`https://www.costco.co.jp/p/${p.item_no}`} rel="noopener" target="_blank">{s.openOnline} ↗</a></p>
   )}
   </div>
+
+  {coupon && <section class="coupon-box" data-coupon-until={coupon.week_to}>
+    <p class="coupon-head"><strong>{s.couponItemTitle}</strong> <span class="badge">{s.couponsBadge}</span></p>
+    <p class="coupon-price">
+      {coupon.price_after != null && <span>{yen(coupon.price_after)}</span>}
+      {coupon.price_before != null && <span class="was muted">{s.wasPrice} {yen(coupon.price_before)}</span>}
+      {coupon.discount_yen != null ? <span class="off">{s.couponItemOff(coupon.discount_yen.toLocaleString('ja-JP'))}</span> : <span class="off">{s.couponsSpecial}</span>}
+      <span class="muted small">{s.couponItemUntil(monthDay(coupon.week_to))}</span>
+    </p>
+    <p class="muted small">{s.couponItemNote} <a href={coupon.source_url} rel="noopener noreferrer" target="_blank">{s.couponsNewsletter} ↗</a> ・<a href={`${localePath(lang, 'deals/')}#coupons`}>{s.couponItemMore}</a></p>
+  </section>}
+  {coupon && <script is:inline>
+    (() => {
+      const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tokyo' }).format(new Date());
+      document.querySelectorAll('[data-coupon-until]').forEach((el) => { if (el.dataset.couponUntil < today) el.hidden = true; });
+    })();
+  </script>}
 
   <h2>{s.history}</h2>
   <p class="muted small">{s.historyNote}</p>
@@ -148,6 +169,10 @@ const obs = [...p.current].sort((a, b) => storeOrder(a.store, b.store) || (b.per
     }
   .category-breadcrumbs { font-size: .85rem; margin-bottom: 8px; }
   .category-breadcrumbs .badge { margin-left: 8px; }
+    .coupon-box { margin-top: 16px; padding: 12px 14px; border: 1px solid var(--ok); border-radius: 10px; background: var(--ok-bg); }
+    .coupon-box p { margin: 0; }
+    .coupon-box .coupon-price { font-size: 1.2rem; font-weight: 700; margin: 4px 0; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+    .coupon-box .badge { margin-left: 6px; }
     h1 { font-size: 1.35rem; margin: 0; }
     .title-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px 12px; flex-wrap: wrap; }
     .name-en { font-size: 0.95rem; color: var(--muted, #555); margin: 0.2rem 0 0; }
