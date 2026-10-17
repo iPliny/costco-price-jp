@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { weeklyDeals, priceRecords, ONLINE_STORE, COMMUNITY } from '../src/lib/data.js';
+import { activeCoupons, couponList, loadCoupons } from '../src/lib/coupons.js';
+import { t } from '../src/lib/i18n.js';
 
 const asOf = '2026-10-15';
 const row = (overrides = {}) => ({ item_no: '1', record_id: 'r1', store: '熊本御船倉庫店',
@@ -153,4 +155,63 @@ test('ended store sale pair is not listed as a drop', () => {
     row({ price: 1000, list_price: null, discount: null, record_id: 'old', period_from: '2026-10-01', period_to: '2026-10-01' })])]);
   assert.deepEqual(recordIds(result.endedSales), ['r1']);
   assert.equal(result.priceDrops.length, 0);
+});
+
+const coupon = (overrides = {}) => ({ week_from: '', week_to: '2026-10-25', item_no: '1',
+  name_ja: 'テスト商品', discount_yen: '200', price_after: '800', price_before: '1000',
+  scope: '倉庫店', source: '電子報', source_url: 'https://cds2.costcojapan.jp/cds/mail-images/upz/261016_test/pc_index.html',
+  fetched_at: '2026-10-18T10:00:00+09:00', ...overrides });
+const couponRun = (rows, products = []) => activeCoupons(rows, products, '2026-10-18');
+
+test('coupons: missing file, empty, expired and future data provide no section entries', () => {
+  assert.deepEqual(loadCoupons('data/__missing_coupons__.csv'), []);
+  assert.deepEqual(couponRun([]), []);
+  assert.deepEqual(couponRun([coupon({ week_to: '2026-10-17' }), coupon({ week_from: '2026-10-19' }),
+    coupon({ fetched_at: '2026-10-19T10:00:00+09:00' })]), []);
+  assert.equal(couponRun([coupon({ week_to: '2026-10-18' })]).length, 1);
+});
+
+test('coupons: discount descending; special price without known discount comes last', () => {
+  const rows = [coupon({ item_no: '10' }), coupon({ item_no: '2' }),
+    coupon({ item_no: '3', discount_yen: '500', price_before: '1300' }),
+    coupon({ item_no: '4', discount_yen: '', price_before: '' })];
+  const before = structuredClone(rows);
+  assert.deepEqual(couponRun(rows).map((r) => r.item_no), ['3', '2', '10', '4']);
+  assert.deepEqual(rows, before);
+  assert.equal(couponRun(rows).at(-1).discount_yen, null);
+});
+
+test('coupons: only existing products get links in either locale and ItemList includes every row', () => {
+  const rows = couponRun([coupon(), coupon({ item_no: '2' })], [product('1', [])]);
+  assert.equal(rows[0].product.id, '1');
+  assert.equal(rows[1].product, null);
+  for (const lang of ['ja', 'zh']) {
+    const list = couponList(rows, lang, 'https://example.com/deals/', 'https://example.com/');
+    assert.equal(list.numberOfItems, 2);
+    assert.equal(list.itemListElement.length, 2);
+    assert.equal(list.itemListElement[0].url, `https://example.com/${lang === 'ja' ? '' : 'zh-hant/'}item/1/`);
+    assert.equal(Object.hasOwn(list.itemListElement[1], 'url'), false);
+  }
+});
+
+test('coupons: both languages identify announcement data and unknown values', () => {
+  assert.equal(t('ja').couponsBadge, 'クーポン情報');
+  assert.equal(t('zh').couponsBadge, '折價券資訊');
+  for (const lang of ['ja', 'zh']) {
+    assert.ok(t(lang).couponsNote.includes('Costco') || t(lang).couponsNote.includes('コストコ'));
+    assert.ok(t(lang).couponsStartUnknown);
+    assert.ok(t(lang).couponsSpecial);
+  }
+});
+
+test('coupons: invalid dates, prices, scopes, provenance and inconsistent arithmetic never publish', () => {
+  for (const bad of [{ week_to: '2026-02-30' }, { week_from: '2026-10-26' }, { discount_yen: '0' },
+    { price_after: '-1' }, { price_before: '999' }, { price_after: 'oops' }, { item_no: '' },
+    { scope: 'unknown' }, { source: 'LINE' }, { source_url: 'javascript:alert(1)' },
+    { source_url: 'https://example.com/' }, { fetched_at: '' }]) {
+    assert.deepEqual(couponRun([coupon(bad)]), [], JSON.stringify(bad));
+  }
+  const row = couponRun([coupon({ price_after: '', price_before: '' })])[0];
+  assert.equal(row.price_after, null);
+  assert.equal(row.week_from, '');
 });

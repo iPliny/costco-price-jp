@@ -141,3 +141,37 @@ Cloudflare Pages 連接 GitHub 後，推到 `main` 會自動部署正式版（�
 `src/lib/site.js` 填入 Google Analytics 4 的評估 ID（`GA_ID`）與 Search Console 的驗證碼（`GSC_VERIFICATION`）即可啟用；
 填入 `GA_ID` 後頁尾會自動顯示使用分析工具的告知文字。預覽版不送統計。
 網站正式網址是 https://costco.crawlsnek.com/ 。網站地圖在 `https://costco.crawlsnek.com/sitemap.xml`，可提交到 Search Console。
+
+## 每週折價券：離線匯入（A2）
+
+`/deals/`、`/zh-hant/deals/` 的折價券區與原有店頭／線上價格區分開。來源為 Costco 官方電子報網頁版，僅公開商品番號、名稱、價格、期間與來源網址等事實。電子報主機 `cds2.costcojapan.jp/robots.txt` 為 `User-Agent: * / Disallow: /`，因此不新增網路爬蟲或 Actions 抓取步驟，也不推測下一期網址。`import_coupons.py` 完全離線，不下載 HTML 的遠端圖片。
+
+擁有者每週只需：打開群組分享的電子報連結，以瀏覽器「網頁，完整」（Mac ⌘+S）存入 Drive `日本物價長期追蹤調查/素材/コストコ/0_折價券電子報/YYYYMMDD/`，保留資源子資料夾；也可以放完整 PDF 或整頁截圖。之後交由 Codex 檢查完整期數及全部圖片，整理、匯入並開 PR。只有存檔不會自行部署更新網站。
+
+工具接受一或多個本機 `.html/.htm/.pdf/.png/.jpg/.jpeg/.webp`。圖片型電子報沒有可用商品 alt 文字，工具不會假裝能直接解析；Codex 必須先看圖逐筆核對，為該期建立私有 `reviewed_facts.json`，再執行：
+
+```sh
+python3 tools/import_coupons.py /path/to/newsletter.html --facts /path/to/reviewed_facts.json
+# PDF／截圖直接作為 inputs；多份同週電子報一次傳入並先合併、處理重複。
+python3 -m unittest discover -s tests -p '*_test.py'
+node --test tests/*.test.js
+CF_PAGES_BRANCH=test npm run build:cf
+```
+
+審核 JSON 只放在 Drive（不可進公開 repo）：`complete: true` 表示該期全部商品已核對；`evidence` 為本機來源相對於 JSON 的路徑到 SHA-256 的映射；`rows` 每筆含下列 CSV 欄位（不必填 `fetched_at`），另加 `evidence_file` 指向已核對圖片或 PDF。完整 HTML 的本機圖片也可直接作為證據；遠端 URL 不會讀取。沒提供審核、雜湊不符、重複番號、金額算式矛盾或日期無效，會停止而不變動 CSV。看不清楚的必填番號、金額或截止日先記入 Drive 報告的「待確認」，尚未完成核對的期數不匯入；可選欄位未記載則留空。
+
+公開 `data/coupons.csv` 欄位：
+
+| 欄位 | 意義 |
+| --- | --- |
+| week_from, week_to | 各商品明載的適用起訖日；未寫開始日留空，絕不用發行日代填。截止日為必填。 |
+| item_no, name_ja | 圖面核對的番號與事實性品名／規格。 |
+| discount_yen | 日圓折扣額；只有特別價時留空，排在已知折扣之後。 |
+| price_after, price_before | 折扣後／特別價及原價；沒寫就留空，未知不等於 0。 |
+| scope | `倉庫店` 或 `オンライン`。 |
+| source, source_url | `電子報` 或 `官網`，及官方 HTTPS 原始來源頁。 |
+| fetched_at | 本次匯入時間，含日本時區。 |
+
+同一週重跑會整週替換，同週一商品只保留一筆；其他週保留。電子報以已知來源網址中的發行日期所屬 ISO 週分組（不拿商品截止日當期數），其他官網來源以匯入日期分組。當週多份來源須合併後一次匯入，衝突先人工解決。日期、折扣缺漏不猜；本次兩筆電視僅有特別價、一筆食品只有每包折扣，均保留空欄位。
+
+網站以日本建置日篩選仍適用資料，過期／未來資料不顯示；沒有資料時隱藏整區、跳轉連結與相應 ItemList。各商品依折扣額遞減，僅既有商品才連結商品頁，未建檔商品不因此新增頁面。JSON-LD 列出完整清單。頁面日期標示「目前日期・最晚截止日」，避免將未知開始日偽裝成優惠起日。網頁為靜態建置，優惠到期後需重建才會反映；既有每日價格工作流程維持不變，匯入工具未接入排程。區塊所稱全部指已存的官方電子報商品，並不保證涵蓋本週所有電子報期數。
