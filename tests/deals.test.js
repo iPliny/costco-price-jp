@@ -215,3 +215,27 @@ test('coupons: invalid dates, prices, scopes, provenance and inconsistent arithm
   assert.equal(row.price_after, null);
   assert.equal(row.week_from, '');
 });
+
+test('coupons: issue date wins over import time and input order across overlapping weeks', () => {
+  const older = coupon({ source_url: coupon().source_url.replace('261016', '261009'), fetched_at: '2026-10-18T12:00:00+09:00' });
+  const newer = coupon({ discount_yen: '300', price_before: '1100', fetched_at: '2026-10-18T10:00:00+09:00' });
+  for (const rows of [[older, newer], [newer, older]]) {
+    const result = couponRun(rows);
+    assert.equal(result[0].discount_yen, 300);
+    assert.equal(result[0].issue_date, '2026-10-16');
+  }
+  assert.equal(couponRun([{ ...older, fetched_at: newer.fetched_at }, newer])[0].discount_yen, 300);
+});
+
+test('coupons: per-100g prices retain their unit; legacy whole-item rows still work', () => {
+  assert.equal(couponRun([coupon({ price_unit: '100g' })])[0].price_unit, '100g');
+  assert.equal(couponRun([coupon()])[0].price_unit, '件');
+  assert.deepEqual(couponRun([coupon({ price_unit: 'kg' })]), []);
+});
+
+test('coupons: current and upcoming offers switch on the actual advertised start date', () => {
+  const current = coupon({ week_to: '2026-10-18', source_url: coupon().source_url.replace('261016', '261015') });
+  const upcoming = coupon({ week_from: '2026-10-19', source_url: coupon().source_url.replace('261016', '261018'), discount_yen: '300', price_before: '1100' });
+  assert.equal(activeCoupons([current, upcoming], [], '2026-10-18')[0].discount_yen, 200);
+  assert.equal(activeCoupons([current, upcoming], [], '2026-10-19')[0].discount_yen, 300);
+});
