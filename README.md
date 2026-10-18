@@ -17,6 +17,34 @@
 - 沒有 Costco 商品番号（`item_no`）的紀錄無法串連價格歷史，不出現在搜尋頁（日本のコストコ価格記録）與商品頁，預覽版也一樣；它們只以話題的身分出現在排名頁（今週の話題）的「店舗ごとの価格」。補上商品番号後會自動出現在搜尋頁。
 - `note` 只有資訊性文字（例如「特別価格」）的紀錄可列為已查核；有待確認事項的標為待確認。
 
+### 資料品質檢查
+
+`python3 tools/check_observations.py [--csv data/observations.csv] [--as-of YYYY-MM-DD] [--report 輸出資料夾]` 只找問題、不改資料，僅使用 Python 標準庫。as-of 預設日本日期；自訂 CSV 時，同目錄需有 product_categories.csv 與 product_names.csv。終端機只列每條規則的 error／warning 件數，報告輸出 errors.csv、warnings.csv；件數為規則觸發列數，同一紀錄可觸發多條規則，不代表已確認錯誤的筆數。有 error 結束碼為 1，僅 warning 為 0。
+
+- E1：CSV 無法解析、欄位數或表頭與規定不符；分類／正式名稱輔助檔不可讀也停止，避免假裝沒有警告。
+- E2：record_id 空白或重複。
+- E3：review_status 不在已查核／待確認／待查核清單。
+- E4：店名不在現有 6 家倉庫店及線上商店清單；新增店別須同步 tools/check_observations.py 的 STORES 與 src/lib/data.js 的 STORE_ORDER。
+- E5：有價格卻不是正整數，或計價單位不是件／100g；價格留空不當作 0。
+- E6：觀測起訖日缺漏／格式或曆日無效、起日晚於終日、終日晚於 as-of，或有值的 promo_end 格式無效。
+- E7：有值的 item_no 不是 ASCII 純數字。
+- E8：有值的 list_price 非整數、無法與有效 price 比較，或不嚴格大於 price。
+- W1：同商品同單位的實體店最新價最高／最低超過 2 倍，列出所有相關店的最新紀錄，不含線上商店。
+- W2：同店同商品同單位，比嚴格較早 period_to 的上一筆漲跌超過 40%，且這筆沒有 list_price。
+- W3：店頭紀錄與同商品同單位的線上商店最新價格相差超過 2 倍；非同日比較可能只是規格、運費或時期不同，需人工判斷。
+- W4：note／note_ja 只填一邊。
+- W5：有商品番号卻未列於 product_categories.csv。
+- W6：discount 無法對上 list_price − price，或 promo_end 早於 period_from。
+- W7：已查核備註仍含要確認／未確認／不明／待確認／問號。
+- W8：同番号的名稱經全半形、空白及大小寫正規化後，沒有共同 3 字片段；線上商店紀錄優先採 product_names.csv 正式名稱。這是字串規則，英日文名稱、縮寫或新舊商品名可能誤報。
+- W9：同店、同非空白商品番号、同價格及觀測期間重複，列出全部候選，不自動刪除。
+
+2 倍與 40% 門檻在程式頂端 PRICE_RATIO_THRESHOLD／PRICE_CHANGE_THRESHOLD。W1／W3 的各店最新價沿用網站的折扣截止日、查核程度與原列順序選取規則；W2 按 period_to 找嚴格較早的一筆。同店比較都區分件／100g，無效價格、觀測起訖日、店名或狀態不進價格比較，但格式錯誤仍照列。
+
+2026-10-18 初次 main 掃描有 1 筆既存 promo_end 使用斜線日期；依導入要求，整條 E6 暫降 warning（含之後新出現的 E6），人工查核舊資料後應移除 DOWNGRADED_RULES 例外並恢復 error；其餘 E 規則仍會阻擋 CI。
+
+測試：`python3 -m unittest tests/check_observations_test.py`（僅用假 CSV）。CI「Data quality check」在 PR／main push 變動 data/** 或工具時執行，也可手動 workflow_dispatch；job summary 只列各規則件數，errors.csv／warnings.csv 在 data-check artifact，即使檢查失敗也上傳。不自動修正、commit、push 或留言；含照片回查與建議值的人工報告只放 Drive。
+
 ### 觀測區間
 
 `period_from`／`period_to` 是「這段期間內曾看到這個價格」，不是整段期間每天的售價。
@@ -89,6 +117,8 @@ Codex 的別名提案（prompt：Drive PM/Codex搜尋關鍵字Prompt）放在 `P
 
 ## 每次更新前的檢查
 
+- `python3 tools/check_observations.py` 沒有錯誤；新增的警告已經看過。
+
 - 値下げ頁與商品頁過去紀錄只用可公開紀錄，不含社群回報（過去紀錄除外，需標示來源）；不畫走勢圖。
 
 - 商品圖只放 data/product_images.csv 列出的插圖（POYU 畫的示意圖），不放門市照片；頁面標示イメージ。
@@ -103,6 +133,8 @@ Codex 的別名提案（prompt：Drive PM/Codex搜尋關鍵字Prompt）放在 `P
 - 商品頁和排名頁每家店（含線上商店）只顯示一個價格：最後確認的那一筆，舊紀錄留在資料裡；商品頁下方的收合「過去の記録」另外列出全部公開紀錄。
 
 ## 指令
+
+- `python3 tools/check_observations.py [--csv data/observations.csv] [--as-of YYYY-MM-DD] [--report 輸出資料夾]`：檢查價格資料並選擇輸出錯誤／警告 CSV，只找問題、不改資料。
 
 - `python3 tools/import_product_images.py <來源資料夾>`：用 Pillow 匯入已逐張檢視的商品插圖，產生壓縮圖片與索引；不在 Cloudflare 建置時執行。
 - `npm run build`：正式版，含已查核與待確認紀錄
