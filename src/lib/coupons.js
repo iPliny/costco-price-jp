@@ -11,13 +11,23 @@ export function loadCoupons(file = 'data/coupons.csv') {
   return fs.existsSync(file) ? parseCsv(fs.readFileSync(file, 'utf8')) : [];
 }
 
+export function couponIssueDate(row) {
+  const match = /\/upz\/(\d{2})(\d{2})(\d{2})_/.exec(row.source_url ?? '');
+  const issue = match ? `20${match[1]}-${match[2]}-${match[3]}` :
+    row.source === '官網' ? row.fetched_at?.slice(0, 10) : '';
+  return date(issue) ? issue : null;
+}
+
 // An omitted start is unknown, never a fabricated publication/start date.
 export function activeCoupons(rows, products, asOf = couponToday()) {
   if (!date(asOf)) return [];
   const byItem = new Map(products.filter((p) => p.item_no).map((p) => [p.item_no, p]));
   const best = new Map();
   for (const row of rows) {
+    const issue = couponIssueDate(row);
+    const unit = row.price_unit || '件'; // Older imports predate the optional unit column.
     if (!/^\d+$/.test(row.item_no ?? '') || !row.name_ja?.trim() ||
+        !issue || issue > asOf || !['件', '100g'].includes(unit) ||
         !date(row.week_to) || row.week_to < asOf ||
         (row.week_from && (!date(row.week_from) || row.week_from > asOf || row.week_from > row.week_to)) ||
         !date(row.fetched_at?.slice(0, 10)) || row.fetched_at.slice(0, 10) > asOf ||
@@ -30,8 +40,9 @@ export function activeCoupons(rows, products, asOf = couponToday()) {
         (discount != null && discount <= 0) ||
         (discount != null && after != null && before != null && before - after !== discount)) continue;
     const current = best.get(row.item_no);
-    if (!current || row.fetched_at > current.fetched_at) best.set(row.item_no, {
+    if (!current || issue > current.issue_date || (issue === current.issue_date && row.fetched_at > current.fetched_at)) best.set(row.item_no, {
       ...row, discount_yen: discount, price_after: after, price_before: before,
+      price_unit: unit, issue_date: issue,
       product: byItem.get(row.item_no) ?? null,
     });
   }

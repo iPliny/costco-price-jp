@@ -124,8 +124,8 @@ const jsonLd = [{
         <span class="badge">{s.couponsBadge}</span></div>
       <p class="muted small">{s.itemNoLabel(row.item_no)} ・{row.scope === '倉庫店' ? s.couponsWarehouse : s.couponsOnline}</p>
       <dl>
-        <dt>{s.off}</dt><dd>{row.discount_yen == null ? s.couponsSpecial : yen(row.discount_yen)}</dd>
-        <dt>{s.couponsAfter}</dt><dd>{row.price_after == null ? s.couponsUnknown : yen(row.price_after)}</dd>
+        <dt>{s.off}</dt><dd>{row.discount_yen == null ? s.couponsSpecial : price(row.discount_yen, row)}</dd>
+        <dt>{s.couponsAfter}</dt><dd>{row.price_after == null ? s.couponsUnknown : price(row.price_after, row)}</dd>
         <dt>{s.couponsDates}</dt><dd>{row.week_from || s.couponsStartUnknown} 〜 {row.week_to}</dd>
         <dt>{s.couponsSource}</dt><dd><a href={row.source_url} rel="noopener noreferrer" target="_blank">{row.source === '電子報' ? s.couponsNewsletter : s.couponsOfficial}</a></dd>
       </dl>

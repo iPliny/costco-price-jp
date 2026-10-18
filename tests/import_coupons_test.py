@@ -45,7 +45,7 @@ class ImportTest(unittest.TestCase):
             module.run([evidence], facts, output)
             self.assertEqual(len(read()), 2)
             saved = output.read_bytes()
-            for rows in [[row, row], [dict(row, discount_yen='-1')], [dict(row, week_to='2026-02-30')],
+            for rows in [[row, dict(row, discount_yen='300')], [dict(row, discount_yen='-1')], [dict(row, week_to='2026-02-30')],
                          [dict(row, source_url='https://example.com/')],
                          [dict(row, source_url='https://cds2.costcojapan.jp/cds/mail-images/other/pc_index.html')]]:
                 data['rows'] = rows
@@ -60,6 +60,37 @@ class ImportTest(unittest.TestCase):
                 module.run([evidence], facts, output)
             self.assertEqual(output.read_bytes(), saved)
 
+    def test_multiple_issues_merge_by_publication_date_and_migrate_legacy_units(self):
+        with tempfile.TemporaryDirectory() as root:
+            p = Path(root).resolve()
+            image = p / 'page.png'
+            image.write_bytes(b'synthetic image fixture')
+            row = dict(week_from='', week_to='2026-10-25', item_no='12', name_ja='商品',
+                       discount_yen='200', price_after='', price_before='', scope='倉庫店', source='電子報',
+                       source_url='https://cds2.costcojapan.jp/cds/mail-images/upz/261015_test/pc_index.html', evidence_file='page.png')
+            def receipt(name, rows):
+                file = p / name
+                file.write_text(json.dumps(dict(complete=True, evidence={'page.png': hashlib.sha256(image.read_bytes()).hexdigest()}, rows=rows)), encoding='utf-8')
+                return file
+            old = receipt('old.json', [row, dict(row, item_no='13')])
+            new = receipt('new.json', [dict(row, discount_yen='300', source_url=row['source_url'].replace('261015', '261018'), price_unit='100g')])
+            output = p / 'out.csv'
+            # Legacy archived data should survive the added unit column.
+            with output.open('w', encoding='utf-8', newline='') as f:
+                writer = csv.DictWriter(f, fieldnames=module.LEGACY_COLS)
+                writer.writeheader()
+                archived = module.validate(dict(row, source_url=row['source_url'].replace('261015', '261009')), '2026-10-18T10:00:00+09:00')
+                writer.writerow({k: archived[k] for k in module.LEGACY_COLS})
+            for receipts in [[old, new], [new, old]]:
+                self.assertEqual(module.run([image], receipts, output), 2)
+                with output.open(encoding='utf-8', newline='') as f:
+                    rows = list(csv.DictReader(f))
+                self.assertEqual(len(rows), 3)
+                self.assertEqual(rows[0]['price_unit'], '件')
+                current = next(r for r in rows if '261018' in r['source_url'])
+                self.assertEqual(current['discount_yen'], '300')
+                self.assertEqual(current['price_unit'], '100g')
+
     def test_saved_html_local_assets_only(self):
         with tempfile.TemporaryDirectory() as root:
             p = Path(root)
@@ -70,6 +101,15 @@ class ImportTest(unittest.TestCase):
             html.write_text('<img src="../outside.png">')
             with self.assertRaises(ValueError):
                 module.local_inputs([html])
+
+    def test_sunday_announces_next_week_without_erasing_current_offer(self):
+        current = dict(source='電子報', source_url='https://cds2.costcojapan.jp/cds/mail-images/upz/261015_test/pc_index.html', week_from='')
+        upcoming = dict(current, source_url=current['source_url'].replace('261015', '261018'), week_from='2026-10-19')
+        self.assertEqual(module.issue_week(current), '2026-10-12')
+        self.assertEqual(module.issue_week(upcoming), '2026-10-19')
+        self.assertNotEqual(module.issue_week(current), module.issue_week(upcoming))
+        reannounced = dict(current, source_url=current['source_url'].replace('261015', '261023'), week_from='2026-10-15')
+        self.assertEqual(module.issue_week(reannounced), '2026-10-19')
 
 
 if __name__ == '__main__':

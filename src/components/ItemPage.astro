@@ -65,10 +65,11 @@ const related = loadRelatedProducts(p);
 
   {coupon && <section class="coupon-box" data-coupon-until={coupon.week_to}>
     <p class="coupon-head"><strong>{s.couponItemTitle}</strong> <span class="badge">{s.couponsBadge}</span></p>
+    <p class="muted small">{coupon.name_ja}</p>
     <p class="coupon-price">
-      {coupon.price_after != null && <span>{yen(coupon.price_after)}</span>}
-      {coupon.price_before != null && <span class="was muted">{s.wasPrice} {yen(coupon.price_before)}</span>}
-      {coupon.discount_yen != null ? <span class="off">{s.couponItemOff(coupon.discount_yen.toLocaleString('ja-JP'))}</span> : <span class="off">{s.couponsSpecial}</span>}
+      {coupon.price_after != null && <span>{yen(coupon.price_after)}{coupon.price_unit === '100g' && s.per100g}</span>}
+      {coupon.price_before != null && <span class="was muted">{s.wasPrice} {yen(coupon.price_before)}{coupon.price_unit === '100g' && s.per100g}</span>}
+      {coupon.discount_yen != null ? <span class="off">{s.couponItemOff(coupon.discount_yen.toLocaleString('ja-JP'))}{coupon.price_unit === '100g' && s.per100g}</span> : <span class="off">{s.couponsSpecial}</span>}
       <span class="muted small">{s.couponItemUntil(monthDay(coupon.week_to))}</span>
     </p>
     <p class="muted small">{s.couponItemNote} <a href={coupon.source_url} rel="noopener noreferrer" target="_blank">{s.couponsNewsletter} ↗</a> ・<a href={`${localePath(lang, 'deals/')}#coupons`}>{s.couponItemMore}</a></p>
