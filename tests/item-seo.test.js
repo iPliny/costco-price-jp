@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { relatedProducts, physicalStoreCount, productOffers, latestPublicDate, latestDate } from '../src/lib/data.js';
+import { relatedProducts, physicalStoreCount, latestPublicDate, latestDate } from '../src/lib/data.js';
 import { t } from '../src/lib/i18n.js';
 
 const asOf = '2026-10-18';
@@ -46,36 +46,6 @@ test('related: default six and explicit limits, including invalid limits', () =>
   assert.equal(relatedProducts(subject, candidates).length, 6);
   assert.deepEqual(ids(relatedProducts(subject, candidates, { limit: 2 })), ['2', '3']);
   for (const limit of [0, -1, 1.5, NaN]) assert.deepEqual(relatedProducts(subject, candidates, { limit }), []);
-});
-
-test('offers: one eligible record is Offer; multiple are AggregateOffer', () => {
-  assert.deepEqual(productOffers(subject, { asOf }), { '@type': 'Offer', priceCurrency: 'JPY', price: 1000 });
-  const p = product('1', { current: [row(), row({ price: 900, store: '線上商店' })] });
-  const before = structuredClone(p);
-  assert.deepEqual(productOffers(p, { asOf }), { '@type': 'AggregateOffer', priceCurrency: 'JPY', lowPrice: 900, highPrice: 1000, offerCount: 2 });
-  assert.deepEqual(p, before);
-});
-
-test('offers: excludes community, 100g, stale, future, invalid dates/prices and private status', () => {
-  const excluded = [
-    { source_type: '社群回報' }, { price_unit: '100g' }, { period_to: '2026-08-18' },
-    { period_to: '2026-10-19' }, { period_to: '2026-02-30' }, { period_to: '' },
-    { price: null }, { price: NaN }, { price: Infinity }, { price: -1 },
-    { review_status: '待查核' }, { review_status: 'unknown' },
-  ].map(row);
-  for (const record of excluded) assert.equal(productOffers(product('1', { current: [record] }), { asOf, preview: false }), null);
-  assert.equal(productOffers(product('1', { current: excluded }), { asOf, preview: false }), null);
-  assert.equal(productOffers(product('1', { current: [row(), ...excluded] }), { asOf, preview: false })['@type'], 'Offer');
-  assert.equal(productOffers(product('1', { item_no: '' }), { asOf }), null);
-  assert.equal(productOffers(subject, { asOf: 'invalid' }), null);
-  assert.equal(productOffers(product('1', { current: [] }), { asOf }), null);
-});
-
-test('offers: includes the 60-day boundary, pending confirmation and preview policy', () => {
-  const p = product('1', { current: [row({ period_to: '2026-08-19', review_status: '待確認' })] });
-  assert.equal(productOffers(p, { asOf, preview: false })['@type'], 'Offer');
-  const preview = product('1', { current: [row({ review_status: '待查核' })] });
-  assert.equal(productOffers(preview, { asOf, preview: true })['@type'], 'Offer');
 });
 
 test('lastmod: latest public end date, future and invalid dates skipped, no fabricated fallback', () => {

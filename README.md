@@ -53,13 +53,13 @@
 
 ### 商品頁 SEO 與相關商品
 
-商品頁雙語 JSON-LD 包含首頁 → 大分類 → 小分類 → 商品的 BreadcrumbList（無分類時只有首頁 → 商品）及 Product，使用正式語系網址、`productID: costco:<商品番号>`、與 meta 相同的摘要及既有插圖；不加品牌、標準商品代碼或評分。`productOffers()` 只取 `p.current` 中日本建置日往前 60 天內（含邊界、不含未來）、可公開、非社群回報的有效件售價；一筆為 Offer，多筆為 AggregateOffer，100g 單價不當商品售價，無合格紀錄不放 offers。摘要只在多店且件售價區間不同時補上最低／最高價，其餘沿用原句。
+商品頁的 JSON-LD 沿用共用版型（WebPage）與 `src/lib/seo.js` 的 BreadcrumbList（首頁 → 大分類 → 小分類 → 商品）；不輸出 Product、Offer 或評分，歷史觀測價不當成商店可購買的價格（`tools/check_seo.mjs` 會檢查）。摘要只在多店且件售價區間不同時補上最低／最高價，其餘沿用原句。
 
 `relatedProducts()` 在原有歷史紀錄之後列最多 6 件有商品番号及可公開目前紀錄的商品，先同小分類、不足再補同大分類；無分類則不列。每層依實體店數（不含線上商店）、人氣、最新觀測終日、商品番号排序，排除自己；卡片沿用價格區間與 100g 格式，附實體店數及小分類入口，不需 JavaScript。
 
 sitemap 商品頁取所有可公開歷史最晚 `period_to`；首頁、deals、recent（含 online）取全站可公開紀錄最晚終日；分類頁取所屬商品最晚終日，本月話題取該期 `to`。無效／未來日期略過，無日期不加 lastmod；週報與 about 不加，不設 changefreq／priority。正式及預覽沿用既有公開狀態政策，原有各店取價與歷史排序不變。
 
-檢查：`node --test tests/item-seo.test.js`、`python3 tools/check_categories.py`、`node --test tests/*.test.js`、`CF_PAGES_BRANCH=test npm run build:cf`；檢查雙語商品頁 JSON-LD、相關連結及 sitemap lastmod，並與 main 比對價格／歷史區塊，在 360px 瀏覽器確認無頁面橫向捲動。
+檢查：`node --test tests/item-seo.test.js`、`python3 tools/check_categories.py`、`node --test tests/*.test.js`、`CF_PAGES_BRANCH=test npm run build:cf`；`node tools/check_seo.mjs dist --preview`；檢查雙語商品頁 JSON-LD、相關連結及 sitemap lastmod，並與 main 比對價格／歷史區塊，在 360px 瀏覽器確認無頁面橫向捲動。
 
 ### 署名與調查方法
 
@@ -99,7 +99,7 @@ Codex 的別名提案（prompt：Drive PM/Codex搜尋關鍵字Prompt）放在 `P
 
 ## 每次更新前的檢查
 
-- 商品頁 JSON-LD 的價格只用 60 天內非社群回報的件單價，不加評分；相關商品只連有商品番号的商品。
+- 商品頁 JSON-LD 不放 Offer／Product 價格；相關商品只連有商品番号的商品。
 
 - 値下げ頁與商品頁過去紀錄只用可公開紀錄，不含社群回報（過去紀錄除外，需標示來源）；不畫走勢圖。
 

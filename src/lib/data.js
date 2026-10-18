@@ -147,19 +147,6 @@ export function relatedProducts(p, products, { limit = 6, preview = PREVIEW } = 
   return [...same, ...wider].slice(0, limit);
 }
 
-// JSON-LD 僅描述最近 60 天可公開的件售價，不把 100g 單價當商品售價。
-export function productOffers(p, { asOf = japanToday(), preview = PREVIEW } = {}) {
-  if (!p.item_no || !validObservationDate(asOf)) return null;
-  const cutoff = shiftDay(asOf, -60);
-  const rows = (p.current || []).filter((o) => publiclyVisible(o, preview) && o.source_type !== COMMUNITY &&
-    o.price_unit === '件' && Number.isFinite(o.price) && o.price >= 0 &&
-    validObservationDate(o.period_to) && o.period_to >= cutoff && o.period_to <= asOf);
-  if (!rows.length) return null;
-  if (rows.length === 1) return { '@type': 'Offer', priceCurrency: 'JPY', price: rows[0].price };
-  return { '@type': 'AggregateOffer', priceCurrency: 'JPY', lowPrice: Math.min(...rows.map((o) => o.price)),
-    highPrice: Math.max(...rows.map((o) => o.price)), offerCount: rows.length };
-}
-
 // sitemap 用所有可公開歷史的觀測終日；未來及無效日期不當更新日。
 export function latestPublicDate(records, { asOf = japanToday(), preview = PREVIEW } = {}) {
   return latestDate(records.filter((o) => publiclyVisible(o, preview)).map((o) => o.period_to), { asOf });
