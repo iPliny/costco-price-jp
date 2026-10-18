@@ -127,6 +127,48 @@ const compareItemNo = (a, b) => a.product.item_no.localeCompare(b.product.item_n
 
 const publiclyVisible = (o, preview) => PUBLISHABLE.has(o.review_status) || (preview && o.review_status === '待查核');
 const shiftDay = (date, days) => new Date(Date.parse(`${date}T00:00:00Z`) + days * 86400000).toISOString().slice(0, 10);
+
+// 相關商品的店數只計實體店；沿用同一套正式／預覽公開狀態。
+export function physicalStoreCount(p, { preview = PREVIEW } = {}) {
+  return new Set((p.current || []).filter((o) => publiclyVisible(o, preview) && o.store && o.store !== ONLINE_STORE).map((o) => o.store)).size;
+}
+
+export function relatedProducts(p, products, { limit = 6, preview = PREVIEW } = {}) {
+  if (!p.category || !Number.isInteger(limit) || limit <= 0) return [];
+  const candidates = products.filter((q) => q.item_no && q.id !== p.id &&
+    (q.current || []).some((o) => publiclyVisible(o, preview)));
+  const latest = (q) => (q.current || []).filter((o) => publiclyVisible(o, preview))
+    .reduce((date, o) => validObservationDate(o.period_to) && o.period_to > date ? o.period_to : date, '');
+  const compare = (a, b) => physicalStoreCount(b, { preview }) - physicalStoreCount(a, { preview }) ||
+    Number(b.popular === true) - Number(a.popular === true) || latest(b).localeCompare(latest(a)) ||
+    a.item_no.localeCompare(b.item_no, 'en', { numeric: true }) || a.id.localeCompare(b.id, 'en');
+  const same = candidates.filter((q) => q.category === p.category).sort(compare);
+  const wider = candidates.filter((q) => p.categoryTop && q.categoryTop === p.categoryTop && q.category !== p.category).sort(compare);
+  return [...same, ...wider].slice(0, limit);
+}
+
+// sitemap 用所有可公開歷史的觀測終日；未來及無效日期不當更新日。
+export function latestPublicDate(records, { asOf = japanToday(), preview = PREVIEW } = {}) {
+  return latestDate(records.filter((o) => publiclyVisible(o, preview)).map((o) => o.period_to), { asOf });
+}
+
+export function latestDate(dates, { asOf = japanToday() } = {}) {
+  if (!validObservationDate(asOf)) return null;
+  return dates.reduce((date, candidate) => validObservationDate(candidate) &&
+    candidate <= asOf && candidate > date ? candidate : date, '') || null;
+}
+
+// 只在靜態建置程序快取商品目錄，純函式的選取與排序仍可獨立測試。
+let relatedCatalog;
+export function loadRelatedProducts(p) {
+  relatedCatalog ??= loadProducts();
+  return relatedProducts(p, relatedCatalog);
+}
+
+export function loadLatestPublicDate() {
+  return latestPublicDate(readObservations());
+}
+
 const compareDealRecords = (a, b) => b.period_to.localeCompare(a.period_to) ||
   (STATUS_RANK[b.review_status] ?? 0) - (STATUS_RANK[a.review_status] ?? 0) ||
   (a.record_id || '').localeCompare(b.record_id || '', 'en', { numeric: true });

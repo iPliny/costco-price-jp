@@ -115,10 +115,13 @@ const STRINGS = {
     back: '← 商品一覧へ戻る',
     itemNoLabel: (no) => (no ? `コストコ商品番号 ${no}` : 'コストコ商品番号なし'),
     itemTitle: (name) => `${name}の値段｜コストコ価格記録`,
-    itemDescription: (name, no, latest, n) =>
+    relatedTitle: '関連する商品',
+    relatedStores: (n) => `${n}店舗`,
+    relatedCategory: (name) => `${name}の商品をすべて見る →`,
+    itemDescription: (name, no, latest, n, lo = null, hi = null) =>
       (name.includes(no) ? `${name}の値段。` : `${name}（コストコ商品番号 ${no}）の値段。`) +
       (latest ? `最新の価格は${latest.price_unit === '100g' ? '100gあたり' : ''}${latest.price.toLocaleString('ja-JP')}円（${latest.store}・${latest.period_to} に確認）。` : '') +
-      (n > 1 ? `${n}店舗の価格を比較できます。` : 'コストコ倉庫店ごとの価格の記録です。'),
+      (n > 1 ? (lo != null && hi != null && lo !== hi ? `${n}店舗の価格を比較できます（${lo.toLocaleString('ja-JP')}円〜${hi.toLocaleString('ja-JP')}円）。` : `${n}店舗の価格を比較できます。`) : 'コストコ倉庫店ごとの価格の記録です。'),
     unnamed: (no) => `コストコ商品 ${no}`,
     history: '店舗ごとの最新価格',
     historyNote: '各店舗（公式オンラインを含む）で最後に確認された価格を1つずつ表示しています。各価格は「この期間中に確認された価格」で、期間中ずっとその価格だったことを示すものではありません。「要確認」の記録は一部の詳細が未確認です。備考をご覧ください。',
@@ -306,10 +309,13 @@ const STRINGS = {
     back: '← 回到商品列表',
     itemNoLabel: (no) => (no ? `Costco 商品號 ${no}` : 'Costco 商品號待補'),
     itemTitle: (name) => `${name} 價格｜日本 Costco 價格紀錄`,
-    itemDescription: (name, no, latest, n) =>
+    relatedTitle: '相關商品',
+    relatedStores: (n) => `${n} 家店`,
+    relatedCategory: (name) => `查看所有${name}商品 →`,
+    itemDescription: (name, no, latest, n, lo = null, hi = null) =>
       (name.includes(no) ? `${name}在日本 Costco 的價格。` : `${name}（Costco 商品號 ${no}）在日本 Costco 的價格。`) +
       (latest ? `最新價格${latest.price_unit === '100g' ? '每 100g ' : ' '}${latest.price.toLocaleString('ja-JP')} 円（${latest.store}，${latest.period_to} 觀測）。` : '') +
-      (n > 1 ? `可比較 ${n} 家店的價格。` : '日本 Costco 各倉庫店的價格觀測紀錄。'),
+      (n > 1 ? (lo != null && hi != null && lo !== hi ? `可比較 ${n} 家店的價格（${lo.toLocaleString('ja-JP')}〜${hi.toLocaleString('ja-JP')} 円）。` : `可比較 ${n} 家店的價格。`) : '日本 Costco 各倉庫店的價格觀測紀錄。'),
     unnamed: (no) => `Costco 商品 ${no}`,
     history: '各店最新價格',
     historyNote: '每家店（含官網）只列最後確認的一個價格；每個價格標示的是「該期間曾觀測到」的價格，不代表整段期間每天都是這個價。標示「待確認」的紀錄還有細節未核實，請參考備註。',
