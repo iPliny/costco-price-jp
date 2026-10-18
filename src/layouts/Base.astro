@@ -143,7 +143,7 @@ const schemas = pageMetadata({ title, description, url, home: abs(lang, ''), bra
         {!path.startsWith('deals/') && <a class="nav-link" href={localePath(lang, 'deals/')}>{s.navDeals}</a>}
         {s.navBlog && !path.startsWith('blog/') && <a class="nav-link" href={localePath(lang, 'blog/')}>{s.navBlog}</a>}
         {!path.startsWith('favorites/') && <a class="nav-link fav-link" href={localePath(lang, 'favorites/')}><span class="fav-star" aria-hidden="true"></span><span class="fav-label">{s.navFavorites}</span><span class="fav-count" data-fav-count hidden></span></a>}
-        <a class="lang-switch" href={localePath(other, only ? '' : path)} hreflang={LANGS[other].htmlLang} lang={LANGS[other].htmlLang}>{LANGS[other].label}</a>
+        <a class="lang-switch" href={localePath(other, only || notFound ? '' : path)} hreflang={LANGS[other].htmlLang} lang={LANGS[other].htmlLang}>{LANGS[other].label}</a>
       </nav>
     </div></header>
     <main class="wrap"><slot /></main>
