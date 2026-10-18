@@ -111,6 +111,27 @@ class ImportTest(unittest.TestCase):
         reannounced = dict(current, source_url=current['source_url'].replace('261015', '261023'), week_from='2026-10-15')
         self.assertEqual(module.issue_week(reannounced), '2026-10-19')
 
+    def test_same_day_identical_campaigns_choose_a_stable_source_url(self):
+        with tempfile.TemporaryDirectory() as root:
+            p = Path(root).resolve()
+            image = p / 'page.png'
+            image.write_bytes(b'fixture')
+            receipts = []
+            for campaign in ['a', 'z']:
+                row = dict(week_from='', week_to='2026-10-25', item_no='12', name_ja='商品',
+                           discount_yen='200', price_after='', price_before='', scope='倉庫店', source='電子報',
+                           source_url=f'https://cds2.costcojapan.jp/cds/mail-images/upz/261018_{campaign}/pc_index.html', evidence_file='page.png')
+                file = p / f'{campaign}.json'
+                file.write_text(json.dumps(dict(complete=True, evidence={'page.png': hashlib.sha256(image.read_bytes()).hexdigest()}, rows=[row])), encoding='utf-8')
+                receipts.append(file)
+            output = p / 'out.csv'
+            for order in [receipts, receipts[::-1]]:
+                module.run([image], order, output)
+                with output.open(newline='', encoding='utf-8') as f:
+                    rows = list(csv.DictReader(f))
+                self.assertEqual(len(rows), 1)
+                self.assertIn('261018_a/', rows[0]['source_url'])
+
 
 if __name__ == '__main__':
     unittest.main()

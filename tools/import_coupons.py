@@ -138,6 +138,10 @@ def run(inputs, facts, output):
                 fields = [k for k in COLS if k not in {'fetched_at', 'source_url'}]
                 if any(row[k] != previous[k] for k in fields):
                     raise ValueError('conflicting item in the same issue; resolve before import')
+                # Identical facts from same-day campaign URLs keep a stable
+                # provenance link regardless of --facts ordering.
+                if row['source_url'] >= previous['source_url']:
+                    continue
             elif issue_date(row) < issue_date(previous):
                 continue
         selected[key] = row
