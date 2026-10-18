@@ -3,15 +3,20 @@ import Base from '../layouts/Base.astro';
 import ProductList from './ProductList.astro';
 import { loadProducts, loadCategories, sortProducts, inCategory } from '../lib/data.js';
 import { t, localePath } from '../lib/i18n.js';
+import { breadcrumb } from '../lib/seo.js';
 const { category, lang } = Astro.props;
 const s = t(lang);
 const all = loadProducts();
 const products = sortProducts(all.filter((p) => inCategory(p, category.id)));
 const categories = loadCategories();
 const parent = categories.find((c) => c.id === category.parent);
+const categoryUrl = (path) => new URL(localePath(lang, path), Astro.site).href;
+const crumbs = [[s.brand, categoryUrl('')],
+  ...(parent ? [[parent[lang], categoryUrl(`category/${parent.id}/`)]] : []),
+  [category[lang], categoryUrl(`category/${category.id}/`)]];
 const children = categories.filter((c) => c.parent === category.id).map((c) => ({ ...c, count: all.filter((p) => inCategory(p, c.id)).length })).filter((c) => c.count);
 ---
-<Base lang={lang} path={`category/${category.id}/`} title={s.categoryTitle(category[lang])} description={s.categoryDescription(category[lang], products.length)}>
+<Base lang={lang} path={`category/${category.id}/`} title={s.categoryTitle(category[lang])} description={s.categoryDescription(category[lang], products.length)} structuredData={[breadcrumb(crumbs)]}>
   <nav class="breadcrumbs" aria-label={s.categoryBreadcrumb}>
     <a href={localePath(lang)}>{s.brand}</a>
     {parent && <> › <a href={localePath(lang, `category/${parent.id}/`)}>{parent[lang]}</a></>}

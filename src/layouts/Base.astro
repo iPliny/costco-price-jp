@@ -2,13 +2,18 @@
 import { PREVIEW } from '../lib/data.js';
 import { LANGS, t, localePath } from '../lib/i18n.js';
 import { GA_ID, GA_TOTAL_ID, GSC_VERIFICATION } from '../lib/site.js';
+import { jsonLd, pageMetadata } from '../lib/seo.js';
 // path：語系內的相對路徑（首頁為 ''，商品頁為 'item/<id>/'），用來產生切換連結與 hreflang。
 // canonical：同內容另有固定網址時（例如本月話題的最新一期），指向那個網址。
 // only：只有單一語言的頁面（例如中文週報），不輸出另一語言的 hreflang，語言切換改連到另一語言首頁。
-const { lang = 'ja', path = '', title, description = t(lang).siteDescription, canonical, only, image } = Astro.props;
+const { lang = 'ja', path = '', title, description = t(lang).siteDescription, canonical, only, image,
+  structuredData = [], noindex = false, notFound = false } = Astro.props;
 const s = t(lang);
 const other = lang === 'ja' ? 'zh' : 'ja';
-const abs = (l) => (Astro.site ? new URL(localePath(l, path), Astro.site).href : localePath(l, path));
+const abs = (l, p = canonical ?? path) => (Astro.site ? new URL(localePath(l, p), Astro.site).href : localePath(l, p));
+const url = abs(lang);
+const schemas = pageMetadata({ title, description, url, home: abs(lang, ''), brand: s.brand,
+  language: LANGS[lang].htmlLang, isHome: path === '' });
 ---
 <!doctype html>
 <html lang={LANGS[lang].htmlLang}>
@@ -18,15 +23,22 @@ const abs = (l) => (Astro.site ? new URL(localePath(l, path), Astro.site).href :
     <link rel="icon" type="image/svg+xml" href={`${import.meta.env.BASE_URL}favicon.svg`} />
     <title>{title}</title>
     <meta name="description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    {!notFound && <meta property="og:url" content={url} />}
+    <meta property="og:site_name" content={s.brand} />
+    <meta property="og:locale" content={lang === 'ja' ? 'ja_JP' : 'zh_TW'} />
+    <meta name="twitter:card" content={image ? 'summary_large_image' : 'summary'} />
     {image && <>
       <meta property="og:image" content={new URL(`${import.meta.env.BASE_URL}${image}`, Astro.site).href} />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
-      <meta name="twitter:card" content="summary_large_image" />
     </>}
-    <link rel="canonical" href={canonical ? new URL(localePath(lang, canonical), Astro.site).href : abs(lang)} />
+    {!notFound && <link rel="canonical" href={url} />}
+    {!notFound && <script type="application/ld+json" set:html={jsonLd([...schemas, ...structuredData])} />}
     <slot name="head" />
-    {!only && (
+    {!only && !notFound && (
       <>
         <link rel="alternate" hreflang="ja" href={abs('ja')} />
         <link rel="alternate" hreflang="zh-Hant" href={abs('zh')} />
@@ -48,7 +60,7 @@ const abs = (l) => (Astro.site ? new URL(localePath(l, path), Astro.site).href :
         </script>
       </>
     )}
-    {PREVIEW && <meta name="robots" content="noindex" />}
+    {(PREVIEW || noindex || notFound || path.startsWith('favorites/')) && <meta name="robots" content="noindex" />}
     <style is:global>
       :root {
         --bg: #f6f7f9; --card: #ffffff; --text: #1d2330; --muted: #5d6677;

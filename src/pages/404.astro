@@ -1,0 +1,13 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="ページが見つかりません / 找不到頁面｜コストコ価格記録" description="指定されたページは見つかりません。找不到指定的頁面，請回首頁查詢商品。" path="404/" notFound={true}>
+  <h1>404 — ページが見つかりません</h1>
+  <p>URLをご確認いただくか、ホームから商品を検索してください。</p>
+  <p><a href="/">日本語のホームへ</a></p>
+  <section lang="zh-Hant">
+    <h2>找不到這個頁面</h2>
+    <p>請確認網址，或回首頁重新搜尋商品。</p>
+    <p><a href="/zh-hant/">前往繁體中文首頁</a></p>
+  </section>
+</Base>
