@@ -51,6 +51,16 @@
 
 商品頁原有各店最新價格保持原樣；`priceRecords(p)` 在下方新增預設收合的全部公開紀錄表，依 `period_to` 新到舊、固定店別順序、紀錄編號排序。至少有兩個不同觀測終日才顯示。含官網及社群回報，保留來源、狀態、備註與原價；表格內部可橫向捲動，不畫走勢圖。
 
+### 商品頁 SEO 與相關商品
+
+商品頁雙語 JSON-LD 包含首頁 → 大分類 → 小分類 → 商品的 BreadcrumbList（無分類時只有首頁 → 商品）及 Product，使用正式語系網址、`productID: costco:<商品番号>`、與 meta 相同的摘要及既有插圖；不加品牌、標準商品代碼或評分。`productOffers()` 只取 `p.current` 中日本建置日往前 60 天內（含邊界、不含未來）、可公開、非社群回報的有效件售價；一筆為 Offer，多筆為 AggregateOffer，100g 單價不當商品售價，無合格紀錄不放 offers。摘要只在多店且件售價區間不同時補上最低／最高價，其餘沿用原句。
+
+`relatedProducts()` 在原有歷史紀錄之後列最多 6 件有商品番号及可公開目前紀錄的商品，先同小分類、不足再補同大分類；無分類則不列。每層依實體店數（不含線上商店）、人氣、最新觀測終日、商品番号排序，排除自己；卡片沿用價格區間與 100g 格式，附實體店數及小分類入口，不需 JavaScript。
+
+sitemap 商品頁取所有可公開歷史最晚 `period_to`；首頁、deals、recent（含 online）取全站可公開紀錄最晚終日；分類頁取所屬商品最晚終日，本月話題取該期 `to`。無效／未來日期略過，無日期不加 lastmod；週報與 about 不加，不設 changefreq／priority。正式及預覽沿用既有公開狀態政策，原有各店取價與歷史排序不變。
+
+檢查：`node --test tests/item-seo.test.js`、`python3 tools/check_categories.py`、`node --test tests/*.test.js`、`CF_PAGES_BRANCH=test npm run build:cf`；檢查雙語商品頁 JSON-LD、相關連結及 sitemap lastmod，並與 main 比對價格／歷史區塊，在 360px 瀏覽器確認無頁面橫向捲動。
+
 ### 署名與調查方法
 
 降價頁、各期本月話題與中文週報署名「編集部 ハクイ／編輯部 ハクイ」，連到雙語 `/about/` 調查方法；本月話題與週報 JSON-LD author 為 Person ハクイ，worksFor 為本站 Organization。調查方法的店名、商品數與紀錄數從該建置模式可公開資料計算，不刊登門市照片、聊天暱稱或原文。
@@ -88,6 +98,8 @@ Codex 的別名提案（prompt：Drive PM/Codex搜尋關鍵字Prompt）放在 `P
 `labels` 剛好 5 個，含固定的「好市多」「日本物價」「週報」；`description` 是頁面的搜尋說明（150 字元以內）；改過內容可加 `"updated":"YYYY-MM-DD"`。正文只用 h2、h3、p、a、strong、small、table、ul，不放 script／style；連到本站用 `/zh-hant/...` 路徑，不用舊的 github.io 網址，原始資料只放文末資料說明。週報先推到分支看預覽，POYU 同意才合併上線。檢查：`node --test tests/blog.test.js`（建置時格式不符也會失敗）。
 
 ## 每次更新前的檢查
+
+- 商品頁 JSON-LD 的價格只用 60 天內非社群回報的件單價，不加評分；相關商品只連有商品番号的商品。
 
 - 値下げ頁與商品頁過去紀錄只用可公開紀錄，不含社群回報（過去紀錄除外，需標示來源）；不畫走勢圖。
 
