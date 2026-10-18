@@ -4,6 +4,7 @@ import FavButton from './FavButton.astro';
 import { yen, COMMUNITY, CRAWLED, storeOrder, onlineDiff, discussionsFor, loadCategories, loadWeeklyDeals, priceRecords } from '../lib/data.js';
 import { t, storeName, sourceName, statusName, noteText, localePath, productName, monthDay } from '../lib/i18n.js';
 import { loadCoupons, activeCoupons, couponToday } from '../lib/coupons.js';
+import { breadcrumb } from '../lib/seo.js';
 
 const { p, lang } = Astro.props;
 const s = t(lang);
@@ -17,6 +18,12 @@ const name = productName(lang, p);
 const categories = loadCategories();
 const category = categories.find((c) => c.id === p.category);
 const top = categories.find((c) => c.id === p.categoryTop);
+const itemPath = `item/${p.id}/`;
+const itemUrl = (path) => new URL(localePath(lang, path), Astro.site).href;
+const crumbs = [[s.brand, itemUrl('')],
+  ...(top && top.id !== category?.id ? [[top[lang], itemUrl(`category/${top.id}/`)]] : []),
+  ...(category ? [[category[lang], itemUrl(`category/${category.id}/`)]] : []),
+  [name, itemUrl(itemPath)]];
 const talks = discussionsFor(p.item_no);
 const records = priceRecords(p);
 const showRecords = new Set(records.map((o) => o.period_to)).size >= 2;
@@ -27,7 +34,7 @@ const dropped = deals.priceDrops.some((card) => card.product.item_no === p.item_
 const coupon = activeCoupons(loadCoupons(), [p], couponToday()).find((c) => c.item_no === p.item_no);
 const obs = [...p.current].sort((a, b) => storeOrder(a.store, b.store) || (b.period_to || '').localeCompare(a.period_to || ''));
 ---
-<Base lang={lang} path={`item/${p.id}/`} title={s.itemTitle(name)} description={s.itemDescription(name, p.item_no, p.latest && { ...p.latest, store: storeName(lang, p.latest.store) }, p.stores.length)} image={p.image?.og_file}>
+<Base lang={lang} path={itemPath} title={s.itemTitle(name)} description={s.itemDescription(name, p.item_no, p.latest && { ...p.latest, store: storeName(lang, p.latest.store) }, p.stores.length)} image={p.image?.og_file} structuredData={[breadcrumb(crumbs)]}>
   <p><a href={localePath(lang)}>{s.back}</a></p>
   {(category || p.popular || onSale || dropped || coupon) && <nav class="category-breadcrumbs" aria-label={s.categoryBreadcrumb}>
     {top && <><a href={localePath(lang, `category/${top.id}/`)}>{top[lang]}</a> › </>}
