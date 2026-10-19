@@ -119,30 +119,53 @@ const jsonLd = [{
   {coupons.length > 0 && <section id="coupons">
     <h2>{s.couponsTitle}（<span data-coupon-count>{s.dealsCount(coupons.length)}</span>{couponPeriod}）</h2>
     <p class="muted small">{s.couponsNote}</p>
-    <ul class="deal-list">{coupons.map((row) => <li class="deal-card" data-coupon={row.item_no} data-until={row.week_to}>
+    <input class="coupon-filter" type="search" data-coupon-filter placeholder={s.couponsFilter} aria-label={s.couponsFilter} hidden />
+    <ul class="deal-list coupon-list">{coupons.map((row) => <li class="deal-card coupon-card" data-coupon={row.item_no} data-until={row.week_to} data-search={`${row.name_ja} ${row.item_no}`.toLowerCase()}>
       <div class="store-top"><h3>{row.product ? <a href={localePath(lang, `item/${row.product.id}/`)}>{row.name_ja}</a> : row.name_ja}</h3>
         <span class="badge">{s.couponsBadge}</span></div>
-      <p class="muted small">{s.itemNoLabel(row.item_no)} ・{row.scope === '倉庫店' ? s.couponsWarehouse : s.couponsOnline}</p>
-      <dl>
-        <dt>{s.off}</dt><dd>{row.discount_yen == null ? s.couponsSpecial : price(row.discount_yen, row)}</dd>
-        <dt>{s.couponsAfter}</dt><dd>{row.price_after == null ? s.couponsUnknown : price(row.price_after, row)}</dd>
-        <dt>{s.couponsDates}</dt><dd>{row.week_from || s.couponsStartUnknown} 〜 {row.week_to}</dd>
-        <dt>{s.couponsSource}</dt><dd><a href={row.source_url} rel="noopener noreferrer" target="_blank">{row.source === '電子報' ? s.couponsNewsletter : s.couponsOfficial}</a></dd>
-      </dl>
+      <p class="coupon-line">
+        {row.discount_yen == null ? <span class="off">{s.couponsSpecial}</span> : <span class="off">{s.off} {price(row.discount_yen, row)}</span>}
+        {row.price_after != null && <strong>{price(row.price_after, row)}</strong>}
+        <span class="muted">{row.week_from || s.couponsStartUnknown} 〜 {row.week_to}</span>
+      </p>
+      <p class="muted small">{s.itemNoLabel(row.item_no)} ・{row.scope === '倉庫店' ? s.couponsWarehouse : s.couponsOnline} ・{s.couponsSource} {row.source === '電子報' ? s.couponsNewsletter : s.couponsOfficial}</p>
     </li>)}</ul>
+    <p class="muted small" data-coupon-empty hidden>{s.couponsNoMatch}</p>
+    <button type="button" class="coupon-more" data-coupon-more hidden></button>
   </section>}
-  {coupons.length > 0 && <script is:inline define:vars={{ countTemplate: s.dealsCount(0) }}>
+  {coupons.length > 0 && <script is:inline define:vars={{ countTemplate: s.dealsCount(0), moreTemplate: s.couponsShowAll(0) }}>
     // 靜態頁不一定每天重建：在瀏覽器把已過期的折價券藏起來（日本時間）。
+    // 清單很長：先顯示前 PAGE 筆，可展開或用品名／番號篩選。
     (() => {
+      const PAGE = 12;
       const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tokyo' }).format(new Date());
       const cards = [...document.querySelectorAll('#coupons [data-until]')];
-      cards.forEach((li) => { if (li.dataset.until < today) li.hidden = true; });
-      const left = cards.filter((li) => !li.hidden).length;
-      if (left !== cards.length) document.querySelectorAll('[data-coupon-count]').forEach((el) => { el.textContent = countTemplate.replace('0', String(left)); });
-      if (cards.length && cards.every((li) => li.hidden)) {
+      const live = cards.filter((li) => li.dataset.until >= today);
+      if (live.length !== cards.length) document.querySelectorAll('[data-coupon-count]').forEach((el) => { el.textContent = countTemplate.replace('0', String(live.length)); });
+      if (!live.length) {
+        cards.forEach((li) => { li.hidden = true; });
         document.getElementById('coupons').hidden = true;
         document.querySelector('.section-links a[href="#coupons"]')?.setAttribute('hidden', '');
+        return;
       }
+      const input = document.querySelector('[data-coupon-filter]');
+      const more = document.querySelector('[data-coupon-more]');
+      const empty = document.querySelector('[data-coupon-empty]');
+      let expanded = false;
+      const render = () => {
+        const q = input.value.trim().toLowerCase();
+        const matches = live.filter((li) => !q || li.dataset.search.includes(q));
+        const shown = q || expanded ? matches : matches.slice(0, PAGE);
+        cards.forEach((li) => { li.hidden = !shown.includes(li); });
+        empty.hidden = matches.length > 0;
+        const rest = matches.length - shown.length;
+        more.hidden = rest <= 0;
+        more.textContent = moreTemplate.replace('0', String(rest));
+      };
+      input.hidden = live.length <= PAGE;
+      input.addEventListener('input', render);
+      more.addEventListener('click', () => { expanded = true; render(); });
+      render();
     })();
   </script>}
   <nav class="related small">
@@ -173,6 +196,14 @@ const jsonLd = [{
   dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 12px; font-size: .85rem; margin: 0; }
   dt { color: var(--muted); } dd { margin: 0; }
   summary { cursor: pointer; color: var(--accent); }
+  .coupon-filter { width: 100%; box-sizing: border-box; font: inherit; padding: 8px 12px; margin: 4px 0 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: inherit; }
+  .coupon-card h3 { font-size: 1rem; }
+  .coupon-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin: 6px 0 2px; }
+  .coupon-line strong { font-size: 1.15rem; }
+  .coupon-line .off { color: var(--accent); font-weight: 700; }
+  .coupon-card .small { margin: 0; }
+  .coupon-more[hidden] { display: none; }
+  .coupon-more { display: block; width: 100%; margin: 12px 0 0; padding: 10px; font: inherit; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--accent); cursor: pointer; }
   .ended-sales { margin-top: 12px; }
   .related { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 28px; }
 </style>

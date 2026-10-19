@@ -72,7 +72,7 @@ const related = loadRelatedProducts(p);
       {coupon.discount_yen != null ? <span class="off">{s.couponItemOff(coupon.discount_yen.toLocaleString('ja-JP'))}{coupon.price_unit === '100g' && s.per100g}</span> : <span class="off">{s.couponsSpecial}</span>}
       <span class="muted small">{s.couponItemUntil(monthDay(coupon.week_to))}</span>
     </p>
-    <p class="muted small">{s.couponItemNote} <a href={coupon.source_url} rel="noopener noreferrer" target="_blank">{s.couponsNewsletter} ↗</a> ・<a href={`${localePath(lang, 'deals/')}#coupons`}>{s.couponItemMore}</a></p>
+    <p class="muted small">{s.couponItemNote} <a href={`${localePath(lang, 'deals/')}#coupons`}>{s.couponItemMore}</a></p>
   </section>}
   {coupon && <script is:inline>
     (() => {
