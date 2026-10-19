@@ -281,7 +281,8 @@ function readObservations() {
 }
 
 export function loadObservations() {
-  return readObservations().filter((r) => r.item_no && (PREVIEW || PUBLISHABLE.has(r.review_status)));
+  // A tag whose price could not be read is kept in the CSV but is not an observation.
+  return readObservations().filter((r) => r.item_no && Number.isFinite(r.price) && (PREVIEW || PUBLISHABLE.has(r.review_status)));
 }
 
 // 排名頁引用的群組回報不需要商品號（只當作當下的回報，不進商品歷史）。
