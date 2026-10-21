@@ -105,7 +105,7 @@ item_no,name_ja,name_en,checked
 50008,ガルバーニ マスカルポーネ 500g,GALBANI MASCARPONE 500g,2026-09-27
 50083,ムラカワ　オランダ産ゴーダチーズブロック 800ｇ,HOLLAND GOUDA CHEESE 800g,2026-10-05
 51319,ネイチャーリパブリック マイルド&モイスチャーアロエジェル 310ml x3,NATURE REPUBLIC Mild & Moist Aloe Vera Watery Gel 310ml x3,2026-09-27
-51515,Ｕｍｉｏｓ国内生産 ツナフレーク ライトミート 80g x 18缶パック,Umios Tuna Flake 80g x 18 cans,2026-10-20
+51515,Umios 国内生産 ツナフレーク ライトミート 80g x 18缶パック,Umios Tuna Flake 80g x 18 cans,2026-10-21
 51897,ネスレ ドルチェグスト ジェニオ S PLUS,NESTLE DOLCE GUST GENIO S PLUS,2026-09-27
 51982,【第2類医薬品】半夏厚朴湯エキス顆粒(14日分),KAMPO HANGEKOUBOKUTO,2026-09-27
 52309,カットしめじ600G,TRIMMED SHIMEJI-MUSHROOM,2026-09-27
@@ -378,7 +378,7 @@ item_no,name_ja,name_en,checked
 77384,ソフィ 超熟睡ショーツ オーガニックコットン M-Lサイズ 14枚入り,Sofy Night shorts Organic Cotton M-L size 14pcs,2026-10-20
 77410,インスタ360 X5 360° アクション カメラ オリジナルバンドル CINSAAHAX504/576-COS,INSTA360 X5 BUNDLE CINSAAHAX504/576-COS,2026-10-07
 77413,コストコ クーラーバッグ 3 Way キルト生地 XL Size,Quilt Fabric Cooler 3 Way Bag,2026-10-03
-77430,カゴメ野菜生活シャインマスカット 195ml x 24本,KAGOME SHINE MUSCUT 195ml x 24,2026-09-27
+77430,カゴメ 野菜生活シャインマスカット 195ml x 24本,KAGOME SHINE MUSCUT 195ml x 24,2026-10-21
 77578,オキシクリーン パワーリキッド クラブ パック 600ml 本体 + 900ml x 2 詰め替え,OxiClean Power Liquid Club Pack,2026-09-27
 77655,【冷凍】BIBIGO王マンドゥ肉＆野菜,Frozen KOREAN DUMPLINGS,2026-10-05
 77765,スターバックス オリガミアイスコーヒーブレンド 20袋,STARBUCKS ORIGAMI ICE COFFEE BLEND 20P,2026-09-27
@@ -571,7 +571,7 @@ item_no,name_ja,name_en,checked
 87344,ディッキーズ メンズ 長袖Tシャツ 2枚組,Dickies Men's Long Sleeve Tee 2PK,2026-10-03
 87379,Q10 LEMON DRINK 100G X12,Q10 LEMON DRINK 100G X12,2026-09-27
 87571,コロコロチキン クセになるダブルチーズ味 600ｇ,KoroKoro Chicken Cheese 600g,2026-10-20
-87645,スヌーピーの赤い犬小屋型キャニスター ヘーゼルナッツ ピルエットクッキー入り,Snoopy House Figural Ceramic Jar with of Hazelnut Pirouline cookies,2026-10-03
+87645,スヌーピーの赤い犬小屋型キャニスター ヘーゼルナッツ ピロリンクッキー入り,Snoopy House Figural Ceramic Jar with of Hazelnut Pirouline cookies,2026-10-21
 87652,Belkin ディズニー トイストーリー5 Lilypad iPadケース　iPad第10世代/11世代,Belkin Disney Toy Story 5 Lilypad Case for iPad 10th and 11th Gen,2026-10-01
 87700,アリエール ジェルボール110個 部屋干し＆スポーツ 漂白剤つけおき級消臭 洗濯洗剤 詰め替え,ARIEL GEL BALL INDOOR DRY,2026-10-03
 87701,ボールド ジェルボール 柔軟剤入り 110個 プレミアムブロッサムの香り 洗濯洗剤 詰め替え,BOLD GEL BALL 110CT,2026-10-01
@@ -613,7 +613,7 @@ item_no,name_ja,name_en,checked
 88881,国産鶏肉むねサドルパック,DOMESTIC CHICKEN BREAST,2026-09-27
 88887,国産鶏肉むね皮なしサドル,CHICKEN SKINLESS BREAST,2026-10-20
 88901,にゃんじゃらし 猫ちゃんセレクション ロング 2種 x ショート 2種,"CAT TEASER WITH WAND LONG X2, SHORT X2",2026-09-27
-88931,Zoobies ディズニ― フード付きブランケット,DISNEY HOODIE BLANKET,2026-10-10
+88931,Zoobies ディズニーフード付きブランケット,DISNEY HOODIE BLANKET,2026-10-21
 89015,ビバリーヒルズ ポロ クラブ トートバッグ L,BEVERLY HILLS POLO CLUB TOTE L,2026-10-05
 89035,ゴディバ ラングドシャクッキーアソートメント ショコラ&ブラン 30枚,GODIVA Cookie Milk Chocolate & Blanc 30 peaces,2026-09-27
 89049,レゴ Game Boy™,LEGO Game Boy™,2026-10-20
@@ -669,6 +669,7 @@ item_no,name_ja,name_en,checked
 90792,シロカ ホームベーカリー 2斤タイプ CST-201(W),Siroca Home Bakery 2-Kin Type CST-201(W),2026-10-05
 90793,Market O ビチョビ チョコビスケット 5本 x 4箱,Market O Bi Cho Bi Chocolate Biscuit 5PC X 4,2026-10-14
 90956,ボーズ QuietComfort SC ワイヤレスヘッドホン ブラック,Bose QuietComfort SC Wireless Headphones Black,2026-10-10
+91270,湖池屋 SATISFRY アソートボックス 432g,Koikeya Satisfry Assortment Box 432g,2026-10-21
 91328,ハペ おままごとキッチン,Hape Deluxe Multi Function Play Kitchen,2026-10-20
 91388,不二家 カントリーマアムミニ (バニラ) 50g x 10袋,Fujiya Country Ma'am Mini Vanilla Flavor 50g x 10,2026-09-27
 91389,不二家 ホームパイミニ 47g x 10袋,Fujiya Home Pie Mini 47g x 10,2026-09-27
