@@ -8,6 +8,8 @@ export const BLOG_DIR = 'data/blog';
 const META_RE = /^\s*<!--POST\s*([\s\S]*?)-->\s*/;
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const validDate = (value) => typeof value === 'string' && DATE_RE.test(value) &&
+  Number.isFinite(Date.parse(`${value}T00:00:00Z`)) && new Date(`${value}T00:00:00Z`).toISOString().slice(0, 10) === value;
 export const FIXED_LABELS = ['好市多', '日本物價', '週報'];
 export const MAX_DESCRIPTION = 150;
 
@@ -23,8 +25,9 @@ export function checkPost(p) {
   const e = [];
   if (!SLUG_RE.test(p.slug)) e.push('檔名只能用小寫英數與連字號');
   if (!p.title) e.push('缺少 title');
-  if (!DATE_RE.test(p.date ?? '')) e.push('date 須為 YYYY-MM-DD');
-  if (p.updated && !DATE_RE.test(p.updated)) e.push('updated 須為 YYYY-MM-DD');
+  if (!validDate(p.date)) e.push('date 須為有效的 YYYY-MM-DD 日期');
+  if (p.updated && !validDate(p.updated)) e.push('updated 須為有效的 YYYY-MM-DD 日期');
+  if (validDate(p.updated) && validDate(p.date) && p.updated < p.date) e.push('updated 不可早於 date');
   if (!p.description) e.push('缺少 description');
   else if ([...p.description].length > MAX_DESCRIPTION) e.push(`description 超過 ${MAX_DESCRIPTION} 字元`);
   if (!Array.isArray(p.labels) || p.labels.length !== 5) e.push('labels 須剛好 5 個');
@@ -47,4 +50,11 @@ export function loadPosts(dir = BLOG_DIR) {
     if (errors.length) throw new Error(`data/blog/${p.slug}.html：${errors.join('；')}`);
   }
   return posts.sort((a, b) => b.date.localeCompare(a.date) || (b.issue ?? 0) - (a.issue ?? 0));
+}
+
+// 週報頁與列表只採作者記錄的發布／修改日，不採建置時間。
+export function blogSitemapEntries(posts) {
+  const entries = posts.map((p) => ({ path: `blog/${p.slug}/`, lastmod: p.updated || p.date }));
+  const latest = entries.map((p) => p.lastmod).sort().at(-1);
+  return [{ path: 'blog/', ...(latest ? { lastmod: latest } : {}) }, ...entries];
 }

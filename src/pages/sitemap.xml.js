@@ -1,6 +1,6 @@
-import { loadMonthly, loadProducts, populatedCategories, inCategory, latestPublicDate, latestDate, loadLatestPublicDate } from '../lib/data.js';
+import { loadMonthly, loadProducts, populatedCategories, inCategory, latestPublicDate, latestDate, loadLatestPublicDate, recentProducts } from '../lib/data.js';
 import { LANGS } from '../lib/i18n.js';
-import { loadPosts } from '../lib/blog.js';
+import { loadPosts, blogSitemapEntries } from '../lib/blog.js';
 
 export function GET({ site }) {
   const base = import.meta.env.BASE_URL;
@@ -8,7 +8,9 @@ export function GET({ site }) {
   const latest = loadLatestPublicDate();
   const productDates = new Map(products.map((p) => [p.id, latestPublicDate(p.observations)]));
   const paths = [
-    ...['', 'deals/', 'recent/', 'recent/online/'].map((path) => ({ path, lastmod: latest })),
+    ...['', 'deals/'].map((path) => ({ path, lastmod: latest })),
+    ...['store', 'online'].map((channel) => ({ path: channel === 'store' ? 'recent/' : 'recent/online/',
+      lastmod: latestDate(recentProducts(products, channel).map(({ observation }) => observation.period_to)) })),
     ...['about/', 'ranking/'].map((path) => ({ path })),
     ...loadMonthly().map((e) => ({ path: `ranking/monthly/${e.month}/`, lastmod: latestDate([e.to]) })),
     ...products.map((p) => ({ path: `item/${p.id}/`, lastmod: productDates.get(p.id) })),
@@ -27,9 +29,9 @@ ${lastmod ? `    <lastmod>${lastmod}</lastmod>\n` : ''}${Object.entries(LANGS)
     )
   );
   // 週報只有中文版，不加 hreflang。
-  const zhOnly = ['blog/', ...loadPosts().map((p) => `blog/${p.slug}/`)].map((path) => `  <url>
+  const zhOnly = blogSitemapEntries(loadPosts()).map(({ path, lastmod }) => `  <url>
     <loc>${url('zh', path)}</loc>
-  </url>`);
+${lastmod ? `    <lastmod>${lastmod}</lastmod>\n` : ''}  </url>`);
   entries.push(...zhOnly);
   const body = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
