@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import { jsonLd as serializeJsonLd } from '../lib/seo.js';
 import { loadPosts } from '../lib/blog.js';
 import { t, localePath } from '../lib/i18n.js';
 
@@ -39,7 +40,7 @@ const jsonLd = [
 ];
 ---
 <Base lang={lang} path={path} only="zh" title={`${post.title}｜${s.blogHeading}`} description={post.description}>
-  <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <script slot="head" type="application/ld+json" set:html={serializeJsonLd(jsonLd)} />
   <p class="crumbs small"><a href={localePath(lang, 'blog/')}>← {s.blogHeading}</a></p>
   <article>
     <h1>{post.title}</h1>

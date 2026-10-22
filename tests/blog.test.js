@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parsePost, checkPost, loadPosts } from '../src/lib/blog.js';
+import { parsePost, checkPost, loadPosts, blogSitemapEntries } from '../src/lib/blog.js';
 
 const meta = {
   title: '日本好市多週報#9：測試',
@@ -38,4 +38,23 @@ test('檔名、日期、危險標籤與舊網址', () => {
 
 test('repo 內所有文章都通過檢查', () => {
   assert.doesNotThrow(() => loadPosts());
+});
+
+test('日期須為真實日曆日期，修改時間不可早於發布', () => {
+  for (const date of ['2026-02-30', '2026-13-01']) assert.ok(checkPost(make({ date })).length);
+  assert.ok(checkPost(make({ updated: '2026-10-16' })).length);
+  assert.ok(checkPost(make({ updated: '2026-02-30' })).length);
+  assert.deepEqual(checkPost(make({ updated: '2026-10-18' })), []);
+});
+
+test('週報 sitemap 採發布或修改日，列表採最新文章日；空列表不猜日期', () => {
+  assert.deepEqual(blogSitemapEntries([
+    make({ date: '2026-10-17', updated: '2026-10-20' }),
+    make({ date: '2026-10-18' }, undefined, 'weekly-10'),
+  ]), [
+    { path: 'blog/', lastmod: '2026-10-20' },
+    { path: 'blog/weekly-9/', lastmod: '2026-10-20' },
+    { path: 'blog/weekly-10/', lastmod: '2026-10-18' },
+  ]);
+  assert.deepEqual(blogSitemapEntries([]), [{ path: 'blog/' }]);
 });
