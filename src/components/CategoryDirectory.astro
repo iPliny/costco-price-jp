@@ -1,0 +1,36 @@
+---
+import { populatedCategories } from '../lib/data.js';
+import { t, localePath } from '../lib/i18n.js';
+
+const { products, lang } = Astro.props;
+const s = t(lang);
+const categories = populatedCategories(products);
+const groups = categories.filter((c) => !c.parent && !c.special);
+---
+{groups.length > 0 && <nav class="category-directory" aria-labelledby="category-directory-title">
+  <div class="directory-heading">
+    <h2 id="category-directory-title">{s.categoryDirectoryTitle}</h2>
+    {categories.filter((c) => c.special).map((c) => <a href={localePath(lang, `category/${c.id}/`)}>{c[lang]}</a>)}
+  </div>
+  <ul class="category-groups">
+    {groups.map((top) => <li>
+      <a class="category-top" href={localePath(lang, `category/${top.id}/`)}>{top[lang]}</a>
+      <ul class="category-children">
+        {categories.filter((c) => c.parent === top.id).map((c) => <li>
+          <a href={localePath(lang, `category/${c.id}/`)}>{c[lang]}</a>
+        </li>)}
+      </ul>
+    </li>)}
+  </ul>
+</nav>}
+<style>
+  .category-directory { padding: 16px; margin: 16px 0; background: var(--card); border: 1px solid var(--line); border-radius: 10px; }
+  .directory-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px; margin-bottom: 10px; }
+  h2 { font-size: 1rem; margin: 0; }
+  ul { list-style: none; padding: 0; margin: 0; }
+  .category-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px 20px; }
+  .category-top { font-weight: 600; }
+  .category-children { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: .85rem; }
+  a { display: inline-block; padding: 4px 0; }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
