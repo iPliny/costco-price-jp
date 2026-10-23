@@ -4,6 +4,9 @@ item_no,category,confidence,basis,checked
 7878,dairy,high,name,2026-09-29
 10185,sweets,high,name,2026-09-29
 10208,dairy,high,name,2026-10-04
+10430,kitchen,high,name,2026-10-24
+10479,cleaning,high,name,2026-10-24
+10483,cleaning,high,name,2026-10-24
 10553,health,high,name,2026-10-09
 10654,deli,high,name,2026-09-29
 11605,other,low,name,2026-09-29
@@ -17,6 +20,7 @@ item_no,category,confidence,basis,checked
 14110,baby,high,name,2026-09-29
 14280,pantry,high,name,2026-09-29
 14315,pantry,high,name,2026-10-07
+14415,dairy,high,name,2026-10-24
 14575,drinks,high,name,2026-09-29
 15087,produce,high,name,2026-09-29
 15383,cleaning,high,name,2026-10-04
@@ -32,6 +36,7 @@ item_no,category,confidence,basis,checked
 17282,produce,high,name,2026-10-02
 17407,dairy,high,name,2026-09-29
 17558,produce,high,name,2026-10-02
+17698,drinks,high,name,2026-10-24
 17723,drinks,high,name,2026-10-02
 18619,health,high,name,2026-09-29
 18935,health,high,name,2026-10-02
@@ -40,10 +45,13 @@ item_no,category,confidence,basis,checked
 19674,produce,high,name,2026-09-29
 20284,apparel,high,name,2026-10-02
 20292,drinks,high,name,2026-10-16
+20340,health,high,name,2026-10-24
 21088,pantry,high,name,2026-10-04
+21181,apparel,high,name,2026-10-24
 21887,appliances,high,name,2026-10-15
 22452,kitchen,high,name,2026-09-29
 23010,alcohol,high,name,2026-09-29
+23247,pantry,high,name,2026-10-24
 23343,pantry,high,name,2026-10-02
 23456,pantry,high,name,2026-09-29
 23490,deli,high,name,2026-10-02
@@ -55,6 +63,7 @@ item_no,category,confidence,basis,checked
 25585,pantry,high,name,2026-10-09
 25593,produce,high,name,2026-10-15
 26274,produce,high,name,2026-09-29
+26440,health,high,name,2026-10-24
 27043,health,high,name,2026-09-29
 27315,kitchen,high,name,2026-10-02
 27915,dairy,high,name,2026-10-16
@@ -70,9 +79,12 @@ item_no,category,confidence,basis,checked
 30804,pantry,high,name,2026-09-29
 30813,dairy,high,name,2026-09-29
 30956,kitchen,high,name,2026-10-07
+31172,snacks,high,name,2026-10-24
 31629,pantry,high,name,2026-10-02
 31679,snacks,high,name,2026-09-29
 31897,other,high,name,2026-10-02
+31931,outdoor,high,name,2026-10-24
+31990,drinks,high,name,2026-10-24
 32722,dairy,high,name,2026-10-04
 32748,health,high,name,2026-09-29
 32750,pantry,high,name,2026-10-20
@@ -93,10 +105,12 @@ item_no,category,confidence,basis,checked
 39193,appliances,high,name,2026-09-29
 39229,dairy,high,name,2026-10-07
 39596,pantry,high,name,2026-09-29
+40174,health,high,name,2026-10-24
 40375,health,high,name,2026-09-29
 40650,apparel,high,name,2026-10-13
 41104,pantry,high,name,2026-10-02
 41111,health,high,name,2026-10-13
+41674,cleaning,high,name,2026-10-24
 42360,outdoor,high,name,2026-09-29
 42417,dairy,high,name,2026-09-29
 43210,health,high,name,2026-10-04
@@ -105,7 +119,9 @@ item_no,category,confidence,basis,checked
 45240,sweets,high,name,2026-09-29
 45486,health,high,name,2026-09-29
 45572,pantry,high,name,2026-09-29
+45583,appliances,high,name,2026-10-24
 45630,frozen,high,name,2026-10-02
+45836,pantry,high,name,2026-10-24
 45941,produce,high,name,2026-10-07
 46053,drinks,high,name,2026-10-13
 46327,pantry,high,name,2026-10-07
@@ -122,11 +138,13 @@ item_no,category,confidence,basis,checked
 48750,dairy,high,name,2026-09-29
 48992,appliances,high,name,2026-09-29
 49127,dairy,high,name,2026-10-04
+49325,pantry,high,name,2026-10-24
 49590,appliances,high,name,2026-09-29
 49881,apparel,high,name,2026-09-29
 50008,pantry,low,name,2026-09-29
 50083,dairy,high,name,2026-10-04
 50272,apparel,high,name,2026-10-15
+50770,health,high,name,2026-10-24
 51059,produce,high,name,2026-09-29
 51319,health,high,name,2026-09-29
 51515,pantry,high,name,2026-10-20
@@ -167,6 +185,8 @@ item_no,category,confidence,basis,checked
 56367,health,high,name,2026-09-29
 56662,kitchen,high,name,2026-10-02
 56874,outdoor,high,name,2026-10-02
+56912,health,high,name,2026-10-24
+56996,apparel,high,name,2026-10-24
 57024,meat,high,name,2026-10-04
 57319,appliances,high,name,2026-10-20
 57361,other,low,name,2026-09-29
@@ -176,6 +196,7 @@ item_no,category,confidence,basis,checked
 57554,produce,high,name,2026-09-29
 57555,health,high,name,2026-10-04
 57599,bakery,high,name,2026-10-20
+57648,cleaning,high,name,2026-10-24
 57676,apparel,high,name,2026-10-07
 57777,health,high,name,2026-10-20
 57786,health,high,name,2026-10-20
@@ -191,6 +212,7 @@ item_no,category,confidence,basis,checked
 58581,health,high,name,2026-09-29
 58845,pantry,high,name,2026-10-07
 58863,pantry,high,name,2026-09-29
+58994,furniture,high,name,2026-10-24
 59146,apparel,high,name,2026-10-02
 59320,health,high,name,2026-09-29
 59542,frozen,low,name,2026-09-29
@@ -198,6 +220,7 @@ item_no,category,confidence,basis,checked
 59733,dairy,high,name,2026-09-29
 59734,dairy,high,name,2026-10-02
 59735,dairy,high,name,2026-09-29
+59859,apparel,high,name,2026-10-24
 60251,appliances,high,name,2026-09-29
 60399,dairy,high,name,2026-09-29
 60612,health,high,name,2026-10-20
@@ -209,9 +232,11 @@ item_no,category,confidence,basis,checked
 61308,drinks,high,name,2026-09-29
 61320,health,high,name,2026-10-20
 61689,deli,high,name,2026-10-09
+61718,drinks,high,name,2026-10-24
 61745,apparel,high,name,2026-10-02
 61747,pet,high,name,2026-10-02
 62230,pantry,high,name,2026-10-20
+62298,cleaning,high,name,2026-10-24
 62299,cleaning,high,name,2026-09-29
 62387,appliances,high,name,2026-10-20
 62675,appliances,high,name,2026-10-15
@@ -251,7 +276,9 @@ item_no,category,confidence,basis,checked
 65997,pantry,high,name,2026-09-29
 66080,health,high,name,2026-09-29
 66213,snacks,high,name,2026-09-29
+66320,drinks,high,name,2026-10-24
 66338,health,high,name,2026-10-20
+66370,appliances,high,name,2026-10-24
 66373,pantry,high,name,2026-10-07
 66517,furniture,high,name,2026-09-29
 66621,appliances,high,name,2026-09-29
@@ -278,6 +305,7 @@ item_no,category,confidence,basis,checked
 67892,sweets,high,name,2026-09-29
 67901,appliances,high,name,2026-10-09
 68369,deli,high,name,2026-10-07
+68380,furniture,high,name,2026-10-24
 68684,frozen,low,name,2026-09-29
 68787,pantry,high,name,2026-10-02
 68789,sweets,high,name,2026-10-04
@@ -290,11 +318,15 @@ item_no,category,confidence,basis,checked
 69104,drinks,high,name,2026-10-20
 69116,kitchen,high,name,2026-09-29
 69158,dairy,high,name,2026-10-14
+69173,snacks,high,name,2026-10-24
 69189,health,high,name,2026-09-29
 69307,furniture,high,name,2026-10-02
 69345,sweets,high,name,2026-10-16
+69515,produce,high,name,2026-10-24
 69517,appliances,high,name,2026-10-02
+69528,produce,high,name,2026-10-24
 69709,kitchen,high,name,2026-09-29
+69761,produce,high,name,2026-10-24
 70113,appliances,high,name,2026-10-07
 70153,cleaning,high,name,2026-10-16
 70162,pantry,high,name,2026-09-29
@@ -317,6 +349,7 @@ item_no,category,confidence,basis,checked
 71392,health,high,name,2026-09-29
 71417,kitchen,high,name,2026-10-15
 71438,furniture,high,name,2026-10-14
+71500,pet,high,name,2026-10-24
 71543,dairy,high,name,2026-10-02
 71562,sweets,high,name,2026-10-09
 71623,snacks,high,name,2026-09-29
@@ -359,6 +392,7 @@ item_no,category,confidence,basis,checked
 73414,health,high,name,2026-10-14
 73461,snacks,high,name,2026-10-16
 73536,snacks,high,name,2026-10-09
+73541,produce,high,name,2026-10-24
 73592,produce,high,name,2026-09-29
 73672,pantry,high,name,2026-09-29
 73689,snacks,high,name,2026-10-02
@@ -385,6 +419,7 @@ item_no,category,confidence,basis,checked
 74470,drinks,high,name,2026-09-29
 74496,drinks,high,name,2026-09-29
 74526,appliances,high,name,2026-10-15
+74691,snacks,high,name,2026-10-24
 74736,kitchen,high,name,2026-09-29
 75329,pantry,high,name,2026-10-02
 75400,other,high,name,2026-10-07
@@ -394,7 +429,9 @@ item_no,category,confidence,basis,checked
 75632,deli,high,name,2026-10-16
 75634,deli,high,name,2026-10-04
 75658,deli,low,name,2026-09-29
+75676,drinks,high,name,2026-10-24
 75703,sweets,high,name,2026-09-29
+75727,apparel,high,name,2026-10-24
 75742,appliances,high,name,2026-10-02
 75826,apparel,high,name,2026-10-07
 75828,drinks,high,name,2026-09-29
@@ -444,7 +481,9 @@ item_no,category,confidence,basis,checked
 77565,frozen,high,name,2026-09-29
 77578,cleaning,high,name,2026-09-29
 77655,frozen,high,name,2026-10-04
+77689,apparel,high,name,2026-10-24
 77765,drinks,high,name,2026-09-29
+77873,appliances,high,name,2026-10-24
 77954,health,high,name,2026-09-29
 78118,appliances,high,name,2026-09-29
 78147,apparel,high,name,2026-09-29
@@ -470,6 +509,7 @@ item_no,category,confidence,basis,checked
 78943,sweets,high,name,2026-09-29
 78966,frozen,high,name,2026-10-07
 78973,pet,high,name,2026-10-20
+78974,pet,high,name,2026-10-24
 78987,apparel,high,name,2026-10-16
 79052,appliances,high,name,2026-10-16
 79054,appliances,high,name,2026-10-16
@@ -495,11 +535,13 @@ item_no,category,confidence,basis,checked
 80482,snacks,high,name,2026-09-29
 80497,outdoor,high,name,2026-10-04
 80552,cleaning,high,name,2026-09-29
+80601,apparel,high,name,2026-10-24
 80836,appliances,high,name,2026-10-02
 80843,drinks,high,name,2026-10-14
 80899,appliances,high,name,2026-10-02
 80953,seafood,high,name,2026-09-29
 80975,dairy,high,name,2026-10-04
+80982,appliances,high,name,2026-10-24
 81009,appliances,high,name,2026-10-20
 81063,outdoor,high,name,2026-10-07
 81077,snacks,high,name,2026-10-02
@@ -513,6 +555,7 @@ item_no,category,confidence,basis,checked
 81388,bakery,high,name,2026-10-07
 81596,sweets,high,name,2026-10-09
 81625,pantry,high,name,2026-10-02
+81653,pantry,high,name,2026-10-24
 81676,cleaning,high,name,2026-09-29
 81762,furniture,high,name,2026-09-29
 81827,dairy,high,name,2026-09-29
@@ -530,6 +573,7 @@ item_no,category,confidence,basis,checked
 82313,health,high,name,2026-09-29
 82374,health,low,name,2026-09-29
 82461,kitchen,low,name,2026-09-29
+82505,pantry,high,name,2026-10-24
 82513,furniture,high,name,2026-10-04
 82515,cleaning,high,name,2026-10-04
 82530,apparel,high,name,2026-09-29
@@ -542,7 +586,10 @@ item_no,category,confidence,basis,checked
 82669,appliances,high,name,2026-10-04
 82671,apparel,high,name,2026-09-29
 82769,apparel,low,name,2026-09-29
+82785,baby,high,name,2026-10-24
 82786,baby,high,name,2026-09-29
+82787,baby,high,name,2026-10-24
+82824,furniture,high,name,2026-10-24
 82850,pantry,high,name,2026-09-29
 82855,apparel,high,name,2026-09-29
 82916,kitchen,high,name,2026-09-29
@@ -558,6 +605,7 @@ item_no,category,confidence,basis,checked
 83520,appliances,high,name,2026-09-29
 83612,health,high,name,2026-10-09
 83620,toys,high,name,2026-09-29
+83621,health,high,name,2026-10-24
 83638,cleaning,high,name,2026-10-02
 83644,furniture,high,name,2026-09-29
 83645,appliances,high,name,2026-10-07
@@ -576,6 +624,7 @@ item_no,category,confidence,basis,checked
 84266,appliances,high,name,2026-09-29
 84318,furniture,high,name,2026-09-29
 84328,snacks,high,name,2026-10-02
+84407,apparel,high,name,2026-10-24
 84469,appliances,high,name,2026-09-29
 84470,snacks,high,name,2026-09-29
 84471,sweets,high,name,2026-10-07
@@ -583,7 +632,7 @@ item_no,category,confidence,basis,checked
 84482,snacks,high,name,2026-10-20
 84500,cleaning,high,name,2026-09-29
 84505,appliances,high,name,2026-09-29
-84533,drinks,high,name,2026-10-09
+84533,cleaning,high,name,2026-10-24
 84552,drinks,high,name,2026-09-29
 84553,apparel,high,name,2026-09-29
 84566,appliances,high,name,2026-10-04
@@ -599,6 +648,7 @@ item_no,category,confidence,basis,checked
 84739,appliances,high,name,2026-09-29
 84750,apparel,high,name,2026-10-07
 84752,apparel,high,name,2026-10-14
+84754,pet,high,name,2026-10-24
 84779,cleaning,high,name,2026-09-29
 84822,snacks,high,name,2026-09-29
 84823,snacks,high,name,2026-09-29
@@ -614,7 +664,9 @@ item_no,category,confidence,basis,checked
 85026,snacks,high,name,2026-10-20
 85081,health,low,name,2026-09-29
 85113,appliances,high,name,2026-09-29
+85121,outdoor,high,name,2026-10-24
 85127,pantry,high,name,2026-10-14
+85130,furniture,high,name,2026-10-24
 85289,appliances,high,name,2026-10-20
 85293,appliances,high,name,2026-10-20
 85302,appliances,high,name,2026-10-20
@@ -625,11 +677,13 @@ item_no,category,confidence,basis,checked
 85782,snacks,high,name,2026-10-15
 85799,pantry,high,name,2026-09-29
 85820,appliances,high,name,2026-09-29
+85844,furniture,high,name,2026-10-24
 85857,appliances,high,name,2026-09-29
 85915,snacks,high,name,2026-10-14
 85981,pantry,high,name,2026-10-02
 86025,dairy,high,name,2026-10-02
 86026,meat,high,name,2026-09-29
+86085,drinks,high,name,2026-10-24
 86130,furniture,high,name,2026-09-29
 86133,furniture,high,name,2026-10-20
 86146,appliances,high,name,2026-09-29
@@ -667,6 +721,7 @@ item_no,category,confidence,basis,checked
 86816,meat,high,name,2026-09-29
 86830,pantry,high,name,2026-09-29
 86922,cleaning,high,name,2026-10-20
+86925,snacks,high,name,2026-10-24
 87110,health,high,name,2026-10-09
 87116,outdoor,high,name,2026-09-29
 87122,health,high,name,2026-09-29
@@ -685,6 +740,7 @@ item_no,category,confidence,basis,checked
 87483,produce,high,name,2026-10-14
 87485,meat,high,name,2026-09-29
 87525,pantry,high,name,2026-10-07
+87553,appliances,high,name,2026-10-24
 87571,meat,high,name,2026-10-20
 87645,kitchen,high,name,2026-10-02
 87652,other,high,name,2026-10-02
@@ -715,6 +771,7 @@ item_no,category,confidence,basis,checked
 88348,produce,high,name,2026-09-29
 88357,appliances,high,name,2026-10-04
 88417,pantry,high,name,2026-09-29
+88425,toys,high,name,2026-10-24
 88428,frozen,high,name,2026-10-02
 88437,appliances,high,name,2026-10-09
 88476,pantry,high,name,2026-09-29
@@ -725,10 +782,12 @@ item_no,category,confidence,basis,checked
 88555,seafood,high,name,2026-09-29
 88624,toys,high,name,2026-10-16
 88645,appliances,high,name,2026-10-13
+88681,drinks,high,name,2026-10-24
 88692,appliances,high,name,2026-09-29
 88718,cleaning,high,name,2026-09-29
 88726,snacks,high,name,2026-09-29
 88758,appliances,high,name,2026-10-20
+88770,toys,high,name,2026-10-24
 88771,toys,high,name,2026-10-04
 88786,pet,high,name,2026-09-29
 88788,snacks,high,name,2026-10-15
@@ -763,6 +822,7 @@ item_no,category,confidence,basis,checked
 89331,health,low,name,2026-09-29
 89393,snacks,high,name,2026-10-20
 89432,appliances,high,name,2026-10-15
+89451,toys,high,name,2026-10-24
 89452,appliances,high,name,2026-10-15
 89472,toys,high,name,2026-10-02
 89485,pantry,high,name,2026-10-02
@@ -787,6 +847,7 @@ item_no,category,confidence,basis,checked
 89907,appliances,high,name,2026-10-02
 89914,seafood,high,name,2026-10-07
 89940,sweets,high,name,2026-10-20
+89975,health,high,name,2026-10-24
 89996,health,high,name,2026-10-20
 89997,snacks,high,name,2026-09-29
 90054,meat,high,name,2026-09-29
@@ -810,6 +871,7 @@ item_no,category,confidence,basis,checked
 90252,sweets,high,name,2026-09-29
 90256,drinks,high,name,2026-09-29
 90262,pantry,high,name,2026-10-07
+90266,outdoor,high,name,2026-10-24
 90357,deli,high,name,2026-10-07
 90358,deli,high,name,2026-10-02
 90359,deli,high,name,2026-10-20
@@ -828,9 +890,11 @@ item_no,category,confidence,basis,checked
 90792,appliances,high,name,2026-10-04
 90793,snacks,high,name,2026-10-07
 90839,produce,high,name,2026-10-09
+90937,appliances,high,name,2026-10-24
 90956,appliances,high,name,2026-10-09
+91203,drinks,high,name,2026-10-24
 91248,pantry,high,name,2026-09-29
-91270,toys,high,name,2026-09-29
+91270,snacks,high,name,2026-10-23
 91285,outdoor,high,name,2026-09-29
 91328,toys,high,name,2026-10-20
 91388,snacks,high,name,2026-09-29
@@ -839,8 +903,10 @@ item_no,category,confidence,basis,checked
 91462,appliances,high,name,2026-10-02
 91466,appliances,high,name,2026-10-02
 91467,health,high,name,2026-10-04
+91525,drinks,high,name,2026-10-24
 91567,other,low,name,2026-09-29
 91569,pantry,high,name,2026-09-29
+91659,snacks,high,name,2026-10-24
 91679,dairy,high,name,2026-10-07
 91706,toys,high,name,2026-10-20
 91829,meat,high,name,2026-10-14
@@ -857,10 +923,12 @@ item_no,category,confidence,basis,checked
 92518,drinks,high,name,2026-10-02
 92585,pantry,high,name,2026-10-04
 92602,pantry,high,name,2026-10-20
+92605,sweets,high,name,2026-10-24
 92624,sweets,high,name,2026-10-09
 92695,health,high,name,2026-10-07
 92697,toys,high,name,2026-10-15
 92715,toys,high,name,2026-10-07
+92731,pantry,high,name,2026-10-24
 92840,produce,high,name,2026-09-29
 92870,pantry,high,name,2026-10-20
 93024,bakery,high,name,2026-10-04
@@ -902,6 +970,7 @@ item_no,category,confidence,basis,checked
 94490,seafood,high,name,2026-09-29
 94574,seafood,high,name,2026-09-29
 94622,seafood,high,name,2026-10-04
+94636,seafood,high,name,2026-10-24
 94693,seafood,high,name,2026-10-14
 94695,seafood,high,name,2026-10-02
 94708,seafood,high,name,2026-10-15
@@ -916,8 +985,11 @@ item_no,category,confidence,basis,checked
 95465,seafood,high,name,2026-09-29
 95511,seafood,high,name,2026-09-29
 95646,seafood,high,name,2026-10-14
+95759,seafood,high,name,2026-10-24
+95931,seafood,high,name,2026-10-24
 95936,seafood,high,name,2026-10-04
 95940,seafood,high,name,2026-10-09
+95943,seafood,high,name,2026-10-24
 95969,seafood,high,name,2026-10-04
 96069,deli,high,name,2026-09-29
 96849,seafood,high,name,2026-10-20
@@ -925,6 +997,8 @@ item_no,category,confidence,basis,checked
 96878,deli,high,name,2026-10-04
 96884,deli,high,name,2026-10-20
 97024,outdoor,high,name,2026-10-20
+97169,toys,high,name,2026-10-24
+97170,toys,high,name,2026-10-24
 97300,meat,high,name,2026-10-02
 97418,seafood,high,name,2026-10-14
 97427,seafood,high,name,2026-09-29
@@ -933,9 +1007,11 @@ item_no,category,confidence,basis,checked
 97436,seafood,high,name,2026-10-04
 97437,seafood,high,name,2026-10-02
 97443,seafood,high,name,2026-09-29
+97448,deli,high,name,2026-10-24
 97450,seafood,high,name,2026-09-29
 97469,deli,low,name,2026-09-29
 97471,seafood,high,name,2026-10-16
+97727,snacks,high,name,2026-10-24
 97976,other,low,name,2026-09-29
 97986,seafood,high,name,2026-10-20
 97998,seafood,high,name,2026-10-14
@@ -954,6 +1030,8 @@ item_no,category,confidence,basis,checked
 108121,drinks,high,name,2026-09-29
 109764,produce,high,name,2026-09-29
 123588,produce,high,name,2026-09-29
+149126,cleaning,high,name,2026-10-24
+149128,cleaning,high,name,2026-10-24
 153913,sweets,high,name,2026-10-02
 156047,furniture,high,name,2026-10-15
 177723,drinks,high,name,2026-10-02
@@ -968,12 +1046,15 @@ item_no,category,confidence,basis,checked
 502957,snacks,high,name,2026-09-29
 505416,dairy,high,name,2026-10-02
 508989,snacks,high,name,2026-10-14
+515685,paper,high,name,2026-10-24
 516143,drinks,high,name,2026-10-04
 518978,kitchen,high,name,2026-10-07
 520363,drinks,high,name,2026-10-02
 529638,pantry,high,name,2026-10-20
+532193,pantry,high,name,2026-10-24
 532557,pantry,high,name,2026-10-02
 533555,alcohol,high,name,2026-09-29
+536431,kitchen,high,name,2026-10-24
 542906,pantry,high,name,2026-09-29
 542996,pantry,high,name,2026-10-04
 544001,produce,high,name,2026-10-02
@@ -1002,6 +1083,7 @@ item_no,category,confidence,basis,checked
 552386,health,high,name,2026-10-02
 553363,dairy,low,name,2026-09-29
 553393,health,high,name,2026-10-20
+555045,meat,high,name,2026-10-24
 561451,produce,high,name,2026-09-29
 561481,produce,high,name,2026-09-29
 562297,health,high,name,2026-10-04
@@ -1011,11 +1093,15 @@ item_no,category,confidence,basis,checked
 564556,dairy,high,name,2026-10-20
 565656,sweets,high,name,2026-09-29
 567301,outdoor,high,name,2026-10-20
+567488,alcohol,high,name,2026-10-24
 568392,snacks,high,name,2026-09-29
 569148,outdoor,high,name,2026-10-16
 569679,pantry,high,name,2026-09-29
 570348,meat,high,name,2026-09-29
 570531,pantry,high,name,2026-10-20
+571555,drinks,high,name,2026-10-24
+571780,pantry,high,name,2026-10-24
+572127,pantry,high,name,2026-10-24
 573545,pantry,high,name,2026-09-29
 574225,snacks,high,name,2026-09-29
 574305,meat,high,name,2026-10-20
@@ -1062,6 +1148,8 @@ item_no,category,confidence,basis,checked
 587490,alcohol,high,name,2026-10-14
 587668,pantry,high,name,2026-09-29
 587834,snacks,high,name,2026-09-29
+588044,produce,high,name,2026-10-24
+588050,pantry,high,name,2026-10-24
 588243,toys,high,name,2026-10-15
 588268,seafood,high,name,2026-10-04
 588870,frozen,high,name,2026-10-02
@@ -1093,6 +1181,7 @@ item_no,category,confidence,basis,checked
 713160,furniture,high,name,2026-09-29
 722573,frozen,high,name,2026-09-29
 822162,health,high,name,2026-09-29
+826584,dairy,high,name,2026-10-24
 833636,pantry,high,name,2026-10-16
 869351,snacks,high,name,2026-10-13
 872690,produce,high,name,2026-09-29
@@ -1131,6 +1220,7 @@ item_no,category,confidence,basis,checked
 1740668,outdoor,high,name,2026-10-16
 1740696,apparel,high,name,2026-09-29
 1744631,kitchen,high,name,2026-10-07
+1757622,outdoor,high,name,2026-10-24
 1759351,kitchen,high,name,2026-10-02
 1768085,paper,high,name,2026-09-29
 1771990,apparel,high,name,2026-10-02
@@ -1140,9 +1230,12 @@ item_no,category,confidence,basis,checked
 1792523,outdoor,high,name,2026-10-15
 1796136,kitchen,high,name,2026-09-29
 1796170,furniture,high,name,2026-09-29
+1796171,furniture,high,name,2026-10-24
 1796305,furniture,high,name,2026-10-07
 1796312,furniture,high,name,2026-10-07
 1801639,apparel,high,name,2026-10-09
+1819451,apparel,high,name,2026-10-24
+1819508,outdoor,high,name,2026-10-24
 1819561,outdoor,high,name,2026-09-29
 1819576,appliances,high,name,2026-09-29
 1844246,outdoor,high,name,2026-09-29
@@ -1181,9 +1274,13 @@ item_no,category,confidence,basis,checked
 1985148,apparel,high,name,2026-09-29
 1985280,outdoor,high,name,2026-09-29
 1996999,furniture,high,name,2026-10-07
+1997002,kitchen,high,name,2026-10-24
 2006970,apparel,high,name,2026-09-29
+2010443,apparel,high,name,2026-10-24
+2010456,apparel,high,name,2026-10-24
 2010464,apparel,high,name,2026-10-07
 2354207,appliances,high,name,2026-09-29
+3226134,kitchen,high,name,2026-10-24
 3226803,kitchen,high,name,2026-09-29
 3227101,kitchen,high,name,2026-10-09
 3227201,kitchen,high,name,2026-09-29
@@ -1191,6 +1288,8 @@ item_no,category,confidence,basis,checked
 6232432,appliances,high,name,2026-10-07
 7482106,apparel,high,name,2026-10-02
 7771397,apparel,high,name,2026-09-29
+7771590,apparel,high,name,2026-10-24
+7771755,apparel,high,name,2026-10-24
 7771990,apparel,high,name,2026-09-29
 7771991,apparel,high,name,2026-09-29
 8523236,furniture,high,name,2026-09-29
