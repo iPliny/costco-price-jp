@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import { loadProducts, loadCategories, sortProducts, inCategory, weeklyDeals } from '../lib/data.js';
 import ProductList from './ProductList.astro';
+import CategoryDirectory from './CategoryDirectory.astro';
 import { t, storeName, localePath, monthDay } from '../lib/i18n.js';
 
 const { lang } = Astro.props;
@@ -31,6 +32,8 @@ const storeCount = (st) => products.filter((p) => p.stores.includes(st)).length;
     <a href={localePath(lang, 'deals/')}>{s.dealsLink}</a>
     <span class="muted">{s.dealsHomeNote(deals.storeSales.length, deals.onlineSales.length, monthDay(deals.updated))}</span>
   </div>
+
+  <CategoryDirectory products={products} lang={lang} />
 
   <input id="q" type="search" placeholder={s.searchPlaceholder} aria-label={s.searchPlaceholder} autocomplete="off" />
   <div class="chips" id="stores">
