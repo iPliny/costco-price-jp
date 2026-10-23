@@ -165,8 +165,8 @@ def check_rows(rows, categories, official_names, as_of, downgrades=None):
                              f"{Decimal(new - old) / Decimal(old):+.2%}，且無 list_price")
             previous = max(by_date[end], key=lambda r: (STATUS_RANK.get(r['review_status'], 0), r['_line']))
 
-    for r in eligible:
-        if r['store'] == ONLINE_STORE:
+    for (store, item, unit), r in sorted(latest.items()):
+        if store == ONLINE_STORE:
             continue
         official = latest.get((ONLINE_STORE, r['item_no'], r['price_unit']))
         if official:

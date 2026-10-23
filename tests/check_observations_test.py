@@ -90,6 +90,8 @@ class RulesTest(unittest.TestCase):
         self.assertFalse(any(f['rule'] == 'W3' for f in self.findings([row(), {**online, 'price_unit': '100g'}])))
         self.assertFalse(any(f['rule'] == 'W3' for f in self.findings([
             row(), online, row('new-online', store='線上商店', price='1000', period_to='2026-10-12')])))
+        self.assertFalse(any(f['rule'] == 'W3' for f in self.findings([
+            row(), row('newer-store', price='1500', period_from='2026-10-12', period_to='2026-10-12'), online])))
 
     def test_w4_bilingual_note(self):
         self.assert_rule('W4', [row(note='說明')], [row(note='說明', note_ja='説明')])
